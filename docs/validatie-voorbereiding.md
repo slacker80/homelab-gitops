@@ -10,9 +10,9 @@ migratie of restore uitgevoerd. Geen uitrolvrijgave.
 - Negatieve test: één `apps/*`-label op `true` laat de validatie falen.
 - `python3 scripts/validate.py --release`: weigert zoals bedoeld (open punten
   en TODO-waarden).
-- `scripts/render-apps.sh`: drie chartarchieven gedownload en SHA256 gelijk aan
+- `scripts/render-apps.sh`: twee chartarchieven gedownload en SHA256 gelijk aan
   de digest in de officiële index van elke chartrepo
-  (home-assistant 0.3.89, hermes-agent 1.22.0, app-template 5.3.0).
+  (home-assistant 0.3.89, app-template 5.3.0). Geen enkele app rendert een Secret.
   Alle zes apps renderen; geen chart maakt zelf een PVC, alle workloads mounten
   de PVC uit `manifests/<app>/base`. Helm-testresources (HA-testpod) slaat Argo over.
 - `scripts/render-kyverno.sh`: beide archieven tegen de checksum gecontroleerd;

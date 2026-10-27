@@ -7,7 +7,6 @@ spec:
   sourceRepos:
     - https://github.com/slacker80/homelab-gitops.git
     - https://pajikos.github.io/home-assistant-helm-chart
-    - https://jyje.github.io/hermes-agent-helm
     - https://bjw-s-labs.github.io/helm-charts
   destinations:
     - namespace: apps-homeassistant

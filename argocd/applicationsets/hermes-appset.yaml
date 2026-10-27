@@ -27,9 +27,9 @@ spec:
     spec:
       project: workloads
       sources:
-        # Community-chart jyje/hermes-agent-helm; geen officiële chart van NousResearch.
-        - repoURL: https://jyje.github.io/hermes-agent-helm
-          chart: hermes-agent
+        # Generieke bjw-s app-template; geen officiële chart van NousResearch (SMA-153).
+        - repoURL: https://bjw-s-labs.github.io/helm-charts
+          chart: app-template
           targetRevision: '{{ coalesce (index (index . "hermes") .name) (index (index . "hermes") "default") }}'
           helm:
             releaseName: hermes

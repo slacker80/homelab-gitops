@@ -1,63 +1,66 @@
-# Community-chart jyje/hermes-agent-helm (versie in versions.yaml).
+# Generieke bjw-s app-template (versie in versions.yaml); geen officiële
+# NousResearch-chart. Besluit Peter (SMA-153): app-template in plaats van de
+# community-chart, zodat er geen chart-Secret en geen seed-config meekomt.
 # Uitrol blijft uit via clusterlabel apps/hermes=false. Open vóór aanzetten:
-# image-digest gelijk aan de huidige Pi-build, gatewaycommand, auth/health,
-# toolbackend en echte netwerkstromen. Securitycontext volgt de
-# values-hardened.yaml van de chart (UID 10000, read-only root, tmpfs).
-image:
-  repository: nousresearch/hermes-agent
-  # Leeg = appVersion van de chart. Vóór aanzetten vastzetten op tag@digest.
-  tag: ""
-controller:
-  type: deployment
-replicaCount: 1
+# image tag@digest gelijk aan de huidige Pi-build, secretnaam (lokaal
+# aangemaakt, niet in Git), auth/health, toolbackend en echte netwerkstromen.
+# config.yaml komt mee met de datamigratie naar /opt/data; er is geen
+# seed/migrate-initcontainer zoals in de community-chart.
+# UID/GID en tmpfs volgen de values-hardened.yaml van die chart (10000).
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10000
+    runAsGroup: 10000
+    fsGroup: 10000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+controllers:
+  gateway:
+    type: deployment
+    replicas: 1
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: docker.io/nousresearch/hermes-agent
+          tag: TODO-pin-tag@sha256
+        args:
+        - gateway
+        - run
+        env:
+          HERMES_HOME: /opt/data
+        # Lokaal aangemaakte Secret koppelen, bijv. secretRef hermes-env.
+        envFrom: []
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 2Gi
 persistence:
-  enabled: true
-  mountPath: /opt/data
   # PVC uit manifests/hermes/base met Prune=false,Delete=false.
-  existingClaim: hermes-data
-podSecurityContext:
-  runAsNonRoot: true
-  runAsUser: 10000
-  runAsGroup: 10000
-  fsGroup: 10000
-  seccompProfile:
-    type: RuntimeDefault
-securityContext:
-  allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: true
-  capabilities:
-    drop:
-    - ALL
-extraVolumes:
-- name: run-tmpfs
-  emptyDir:
+  data:
+    existingClaim: hermes-data
+    globalMounts:
+    - path: /opt/data
+  run:
+    type: emptyDir
     medium: Memory
     sizeLimit: 16Mi
-- name: tmp-tmpfs
-  emptyDir:
+    globalMounts:
+    - path: /run
+  tmp:
+    type: emptyDir
     medium: Memory
     sizeLimit: 64Mi
-extraVolumeMounts:
-- name: run-tmpfs
-  mountPath: /run
-- name: tmp-tmpfs
-  mountPath: /tmp
-resources:
-  requests:
-    cpu: 50m
-    memory: 128Mi
-  limits:
-    memory: 2Gi
-nodeSelector: {}
-# De chart zet `env` altijd in een eigen Secret. `env: {}` laat de default
-# OPENAI_API_KEY-placeholder staan (Helm merget maps); de key op `null` zetten
-# verwijdert hem (`env: null` faalt op het chartschema).
-# Geen sleutels in Git: echte sleutels via een lokaal aangemaakte Secret
-# koppelen (extraEnvFrom). De chart rendert dan nog een lege Secret; project
-# workloads blokkeert kind Secret. Keuze open, zie preparation-state.yaml.
-env:
-  OPENAI_API_KEY: null
-extraEnvFrom: []
-# Helm-testjob uit; Argo slaat testhooks ook over.
-tests:
-  enabled: false
+    globalMounts:
+    - path: /tmp

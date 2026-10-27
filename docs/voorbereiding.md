@@ -22,8 +22,10 @@ Besluitbron: [homelab-specs](https://github.com/slacker80/homelab-specs),
 - **Charts:** upstream waar het kan. Er is voor geen van de zes apps een
   officiële chart van de maker gevonden. Daarom:
   - Home Assistant: community-chart [pajikos/home-assistant-helm-chart](https://github.com/pajikos/home-assistant-helm-chart) 0.3.89.
-  - Hermes: community-chart [jyje/hermes-agent-helm](https://github.com/jyje/hermes-agent-helm) 1.22.0.
-  - Paperclip en de Claude-, Codex- en OpenCode-worker: [bjw-s app-template](https://github.com/bjw-s-labs/helm-charts) 5.3.0.
+  - Hermes, Paperclip en de Claude-, Codex- en OpenCode-worker: [bjw-s app-template](https://github.com/bjw-s-labs/helm-charts) 5.3.0.
+    Hermes stond eerst op community-chart jyje/hermes-agent-helm 1.22.0; die
+    rendert altijd een eigen Secret. Na de securityreview (SMA-152) koos Peter
+    app-template (SMA-153).
     Voor Paperclip bestaat alleen een operator van een derde partij
     (paperclipinc/paperclip-operator, met CRD's en eigen controller); die is
     bewust niet gekozen.
@@ -48,7 +50,7 @@ Besluitbron: [homelab-specs](https://github.com/slacker80/homelab-specs),
 | Argo CD | zelfbeheer via bestaande ApplicationSet (label `argocd-install`) | overdracht in homelab-infra |
 | Kyverno | Peters values, met alleen de spec-afwijkingen: chart 3.9.2, failurePolicy Ignore en `forceFailurePolicyIgnore`; upstream policies restricted/Audit met vier namespace-uitzonderingen | compatibiliteitsproef op Kubernetes 1.36.5 |
 | Home Assistant | community-chart, Deployment/Recreate, PVC `homeassistant-config` 6Gi, 2Gi limiet | image-digest, niet-root onder PSA restricted, integraties en LAN-poorten |
-| Hermes | community-chart, Deployment/Recreate, PVC `hermes-data` 8Gi op `/opt/data`, 2Gi limiet, testjob uit | image gelijk aan huidige build, gateway/auth/toolbackend, UID; chart maakt altijd een eigen Secret |
+| Hermes | app-template: `gateway run` (Deployment/Recreate), UID 10000, read-only rootfs met tmpfs, PVC `hermes-data` 8Gi op `/opt/data`, 2Gi limiet; geen Secret of seed-config uit de chart | image gelijk aan huidige build, secretnaam, gateway/auth/toolbackend; `config.yaml` komt mee met de datamigratie |
 | Paperclip | app-template: server (Deployment/Recreate) en PostgreSQL (StatefulSet), PVC's `paperclip-data` 6Gi en `paperclip-postgres` 8Gi | build, datadir, poort/health, PostgreSQL-versie, herstel |
 | Claude/Codex/OpenCode | app-template per worker, PVC 3/3/2Gi, 256Mi wachtlimiet, read-only rootfs | echte workerimages, bridge/leasecontract en gedeeld taakbudget |
 | cert-manager/Envoy Gateway | PR-1-versies en indeling behouden, labels uit | Gateway/TLS/Issuer/adressen |
@@ -59,14 +61,10 @@ zolang die bestaan. Een geldige render geeft geen toestemming voor uitvoering.
 
 ### Bekende beperkingen van de gekozen charts
 
-- De Hermes-chart zet `env` altijd in een eigen Secret (zonder External Secrets
-  Operator). Met `env: {}` staan er geen sleutels in Git, maar het lege Secret
-  botst met de blokkade op kind `Secret` in project `workloads`. Keuze nodig:
-  die blokkade voor deze ene Secret loslaten, of Hermes ook op app-template zetten.
 - Project `workloads` staat nu cluster-resource `Namespace` toe, nodig voor
   `CreateNamespace=true`. Dat laat ook een Namespace-object uit een chart toe;
   controleer de render bij elke chartupdate.
-- De drie community/derde-partijcharts worden door één persoon of klein team
+- De twee community/derde-partijcharts worden door één persoon of klein team
   onderhouden. Renovate stelt updates voor; majors vragen review.
 
 ## Controleren

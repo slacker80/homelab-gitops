@@ -12,7 +12,7 @@ version() {
 # app chart repo namespace
 apps=(
   "homeassistant home-assistant https://pajikos.github.io/home-assistant-helm-chart apps-homeassistant"
-  "hermes hermes-agent https://jyje.github.io/hermes-agent-helm apps-hermes"
+  "hermes app-template https://bjw-s-labs.github.io/helm-charts apps-hermes"
   "paperclip app-template https://bjw-s-labs.github.io/helm-charts apps-paperclip"
   "claude-agent app-template https://bjw-s-labs.github.io/helm-charts agents-claude"
   "codex-agent app-template https://bjw-s-labs.github.io/helm-charts agents-codex"

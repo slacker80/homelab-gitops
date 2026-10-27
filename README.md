@@ -34,9 +34,9 @@ externe clustercredentials. De labels schakelen de volgende componenten in:
 - `tests/kyverno/`: bestaande regressietests voor een securityContext-variant.
 - `scripts/`: lokale validatie en renders zonder clusterverbinding.
 
-Apps gebruiken een upstream-chart waar die bestaat: community-charts voor
-Home Assistant (pajikos) en Hermes (jyje), de generieke bjw-s app-template voor
-Paperclip en de drie workers. Namespaces maakt Argo aan via `CreateNamespace=true`
+Apps gebruiken een upstream-chart waar die bestaat: de community-chart voor
+Home Assistant (pajikos), de generieke bjw-s app-template voor Hermes, Paperclip
+en de drie workers. Namespaces maakt Argo aan via `CreateNamespace=true`
 met PSA-labels in `managedNamespaceMetadata`; er is geen aparte namespace-app.
 PVC's staan als extra manifest met `Prune=false,Delete=false`, zodat data blijft
 staan als een Application verdwijnt.

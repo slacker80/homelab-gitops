@@ -3,10 +3,10 @@ blockers:
   - Overdracht na Terraform-bootstrap (SMA-150) in homelab-infra afronden; daarna pas argocd-install/cilium-install aanzetten.
   - Root, repositorytoegang en AppProject platform bij bootstrap; root valt buiten zijn eigen child-set.
   - Pin alle images op tag@digest (validate.py --release weigert anders); vul worker-images, commando's, UID/GID, probes en secretnamen in; vervang alle TODO-waarden.
-  - Hermes-chart rendert altijd een eigen env-Secret (nu zonder data); project workloads blokkeert kind Secret. Besluit Peter (SMA-152): smalle uitzondering voor apps-hermes, Hermes op app-template, of eigen chart.
+  - Hermes (app-template, SMA-153) - image gelijk aan de Pi-build, lokaal aangemaakte secretnaam en migratie van config.yaml naar /opt/data bevestigen; UID 10000 tegen de gepinde build controleren.
   - Home Assistant als 568:568 onder PSA restricted is best effort (upstream-image start als root) en niet getest; mDNS/SSDP zonder hostNetwork werkt niet.
   - Pod-start onder PSA restricted niet getest; alleen statische render-check. Controle op wegwerpcluster met kubectl apply --dry-run=server.
-  - Bij elke chartbump de gerenderde diff reviewen: geen van de drie chartrepo's levert provenance/signing (SMA-152).
+  - Bij elke chartbump de gerenderde diff reviewen: geen van de twee chartrepo's levert provenance/signing (SMA-152).
   - Paperclip-datadir, poort/health, PostgreSQL-versie en consistente dump/files/keys-restore bevestigen.
   - Pin local-path-provisioner 0.0.37 met namespace local-path-storage (PSA privileged via managedNamespaceMetadata) en Talos UserVolumes met Retain.
   - Complete componentgerichte CNPs vóór inschakelen CCNP; echte poorten en bestemmingen controleren.

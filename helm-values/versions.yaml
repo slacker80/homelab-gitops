@@ -30,12 +30,11 @@ homeassistant:
   # renovate: datasource=helm depName=home-assistant registryUrl=https://pajikos.github.io/home-assistant-helm-chart
   default: "0.3.89"
 
-# Community-chart (jyje); geen officiële NousResearch-chart.
-hermes:
-  # renovate: datasource=helm depName=hermes-agent registryUrl=https://jyje.github.io/hermes-agent-helm
-  default: "1.22.0"
-
 # Generieke bjw-s app-template voor apps zonder bruikbare upstream-chart.
+hermes:
+  # renovate: datasource=helm depName=app-template registryUrl=https://bjw-s-labs.github.io/helm-charts
+  default: "5.3.0"
+
 paperclip:
   # renovate: datasource=helm depName=app-template registryUrl=https://bjw-s-labs.github.io/helm-charts
   default: "5.3.0"
