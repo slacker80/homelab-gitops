@@ -15,6 +15,11 @@ hubble:
   enabled: true
   relay:
     enabled: true
+  # Certificaten via de certgen-job i.p.v. Helm: de methode `helm` maakt bij
+  # elke render nieuwe certificaten, wat onder Argo blijvende drift geeft.
+  tls:
+    auto:
+      method: cronJob
 l2announcements:
   enabled: true
 operator:

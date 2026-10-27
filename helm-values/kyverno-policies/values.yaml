@@ -1,11 +1,31 @@
+# Base values for kyverno-policies (Pod Security Standards)
+# https://kyverno.io/policies/pod-security/
+
+# Render the PSS rules as policies.kyverno.io/v1 ValidatingPolicy resources.
+# ClusterPolicy is deprecated in Kyverno 1.17 and planned for removal.
 policyType: ValidatingPolicy
+
+# PSS profile: restricted enforces current Pod hardening best practices.
+# Required for NEN 7510 / AVG compliance (least privilege, defense in depth).
+# Options: baseline | restricted
 podSecurityStandard: restricted
+
+# Projectafspraak (admission-policy): eerst Audit, met failurePolicy Ignore
+# zolang alle policies Audit zijn. Enforce pas na een aparte compatibiliteitsproef.
 validationFailureAction: Audit
 failurePolicy: Ignore
+
+# Background scans of existing resources.
 background: true
+
+# Skip background-controller admission requests (performance).
+# Explicitly set so ArgoCD autodetect does not drift from the live state.
+skipBackgroundRequests: true
+# Namespace-uitzonderingen volgens admission-policy via vpolExclude; de eigen
+# PolicyExceptions in manifests/kyverno-policies/base zijn niet actief.
 vpolExclude:
   excludeNamespaces:
-  - kube-system
-  - kyverno
-  - argocd
-  - local-path-storage
+    - kube-system
+    - kyverno
+    - argocd
+    - local-path-storage

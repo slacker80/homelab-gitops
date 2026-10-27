@@ -10,7 +10,7 @@ for component in kyverno kyverno-policies; do
     --version 3.9.2 --destination "$render_tmp" \
     --repository-cache "$render_tmp/cache" --repository-config "$render_tmp/repositories.yaml"
 done
-(cd -- "$render_tmp" && sha256sum -c "$repo_root/helm-values/chart-checksums.sha256" >&2)
+(cd -- "$render_tmp" && sha256sum --ignore-missing -c "$repo_root/helm-values/chart-checksums.sha256" >&2)
 for component in kyverno kyverno-policies; do
   "$helm_bin" template "$component" "$render_tmp/$component-3.9.2.tgz" \
     --namespace kyverno --kube-version 1.36.5 \

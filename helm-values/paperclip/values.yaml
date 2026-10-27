@@ -1,22 +1,80 @@
-enabled: false
-image:
-  repository: ''
-  digest: ''
-command: []
-args: []
-existingSecret: ''
-containerPort: 0
-runAsUser: null
-runAsGroup: null
-storage:
-  size: 6Gi
-  mountPath: ''
-  storageClassName: local-path
-resources:
-  requests:
-    cpu: 50m
-    memory: 128Mi
-  limits:
-    memory: 1Gi
-nodeSelector: {}
-runtimeVerified: false
+# Generieke bjw-s app-template (versie in versions.yaml); geen officiële
+# Paperclip-chart gevonden. Uitrol blijft uit via clusterlabel apps/paperclip=false.
+# Open vóór aanzetten: build/tag@digest, datadir,
+# poort/health, UID/GID, secretnaam, PostgreSQL-versie en dump/files/keys-herstel.
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+controllers:
+  server:
+    type: deployment
+    replicas: 1
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: ghcr.io/paperclipai/paperclip
+          tag: TODO-pin-tag@sha256
+        envFrom: []
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 1Gi
+  postgres:
+    type: statefulset
+    replicas: 1
+    containers:
+      app:
+        image:
+          repository: docker.io/library/postgres
+          tag: TODO-pin-tag@sha256
+        envFrom: []
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 1Gi
+service:
+  server:
+    controller: server
+    ports:
+      http:
+        # Poort nog bevestigen tegen de gepinde build.
+        port: 3100
+  postgres:
+    controller: postgres
+    ports:
+      postgres:
+        port: 5432
+persistence:
+  # PVC's uit manifests/paperclip/base met Prune=false,Delete=false.
+  data:
+    existingClaim: paperclip-data
+    advancedMounts:
+      server:
+        app:
+        # Pad nog bevestigen tegen de gepinde build.
+        - path: /paperclip
+  postgres:
+    existingClaim: paperclip-postgres
+    advancedMounts:
+      postgres:
+        app:
+        - path: /var/lib/postgresql/data

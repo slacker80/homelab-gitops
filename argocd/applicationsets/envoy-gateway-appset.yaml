@@ -6,24 +6,24 @@ metadata:
 spec:
   goTemplate: true
   goTemplateOptions:
-  - missingkey=error
+    - missingkey=error
   generators:
-  - matrix:
-      generators:
-      - clusters:
-          selector:
-            matchLabels:
-              platform/envoy-gateway: 'true'
-      - git:
-          repoURL: https://github.com/slacker80/homelab-gitops.git
-          revision: main
-          files:
-          - path: helm-values/versions.yaml
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  platform/envoy-gateway: "true"
+          - git:
+              repoURL: https://github.com/slacker80/homelab-gitops.git
+              revision: main
+              files:
+                - path: helm-values/versions.yaml
   template:
     metadata:
-      name: envoy-gateway-{{ .nameNormalized }}
+      name: "envoy-gateway-{{ .nameNormalized }}"
       annotations:
-        argocd.argoproj.io/sync-wave: '2'
+        argocd.argoproj.io/sync-wave: "2"
       labels:
         app.kubernetes.io/part-of: platform
         app.kubernetes.io/name: envoy-gateway
@@ -31,27 +31,27 @@ spec:
     spec:
       project: platform
       sources:
-      - repoURL: docker.io/envoyproxy
-        chart: gateway-helm
-        targetRevision: '{{ index (index . "envoy-gateway") "default" }}'
-        helm:
-          releaseName: envoy-gateway
-          ignoreMissingValueFiles: false
-          valueFiles:
-          - $values/helm-values/envoy-gateway/values.yaml
-          - $values/helm-values/envoy-gateway/values-{{ .name }}.yaml
-      - repoURL: https://github.com/slacker80/homelab-gitops.git
-        targetRevision: main
-        ref: values
+        - repoURL: docker.io/envoyproxy
+          chart: gateway-helm
+          targetRevision: '{{ index (index . "envoy-gateway") "default" }}'
+          helm:
+            releaseName: envoy-gateway
+            ignoreMissingValueFiles: false
+            valueFiles:
+              - $values/helm-values/envoy-gateway/values.yaml
+              - $values/helm-values/envoy-gateway/values-{{ .name }}.yaml
+        - repoURL: https://github.com/slacker80/homelab-gitops.git
+          targetRevision: main
+          ref: values
       destination:
-        server: '{{ .server }}'
+        server: "{{ .server }}"
         namespace: envoy-gateway-system
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
-        - CreateNamespace=true
-        - ServerSideApply=true
+          - CreateNamespace=true
+          - ServerSideApply=true
   syncPolicy:
     preserveResourcesOnDeletion: true

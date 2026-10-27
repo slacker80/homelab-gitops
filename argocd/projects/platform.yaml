@@ -7,42 +7,42 @@ spec:
   description: Shared project for homelab platform applications.
   permitOnlyProjectScopedClusters: false
   sourceRepos:
-  - https://argoproj.github.io/argo-helm
-  - https://helm.cilium.io
-  - https://kyverno.github.io/kyverno
-  - https://charts.jetstack.io
-  - docker.io/envoyproxy
-  - https://github.com/slacker80/homelab-gitops.git
+    - https://argoproj.github.io/argo-helm
+    - https://helm.cilium.io
+    - https://kyverno.github.io/kyverno
+    - https://charts.jetstack.io
+    - docker.io/envoyproxy
+    - https://github.com/slacker80/homelab-gitops.git
   destinations:
-  - namespace: argocd
-    server: '*'
-  - namespace: kube-system
-    server: '*'
-  - namespace: cilium-secrets
-    server: '*'
-  - namespace: kyverno
-    server: '*'
-  - namespace: cert-manager
-    server: '*'
-  - namespace: envoy-gateway-system
-    server: '*'
-  - namespace: apps-homeassistant
-    server: https://kubernetes.default.svc
-  - namespace: apps-paperclip
-    server: https://kubernetes.default.svc
-  - namespace: apps-hermes
-    server: https://kubernetes.default.svc
-  - namespace: agents-claude
-    server: https://kubernetes.default.svc
-  - namespace: agents-codex
-    server: https://kubernetes.default.svc
-  - namespace: agents-opencode
-    server: https://kubernetes.default.svc
-  - namespace: local-path-storage
-    server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: "*"
+    - namespace: kube-system
+      server: "*"
+    - namespace: cilium-secrets
+      server: "*"
+    - namespace: kyverno
+      server: "*"
+    - namespace: cert-manager
+      server: "*"
+    - namespace: envoy-gateway-system
+      server: "*"
+    - namespace: apps-homeassistant
+      server: https://kubernetes.default.svc
+    - namespace: apps-paperclip
+      server: https://kubernetes.default.svc
+    - namespace: apps-hermes
+      server: https://kubernetes.default.svc
+    - namespace: agents-claude
+      server: https://kubernetes.default.svc
+    - namespace: agents-codex
+      server: https://kubernetes.default.svc
+    - namespace: agents-opencode
+      server: https://kubernetes.default.svc
+    - namespace: local-path-storage
+      server: https://kubernetes.default.svc
   clusterResourceWhitelist:
-  - group: '*'
-    kind: '*'
+    - group: "*"
+      kind: "*"
   namespaceResourceWhitelist:
-  - group: '*'
-    kind: '*'
+    - group: "*"
+      kind: "*"

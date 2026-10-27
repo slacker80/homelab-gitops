@@ -1,17 +1,384 @@
+# Base values for Kyverno
+# Kyverno is a policy engine designed for Kubernetes
+# https://kyverno.io/docs/
+
+# CRD installation
+# Must be enabled for the admission controller to work
 crds:
   install: true
+
+# Admission controller configuration
 admissionController:
   replicas: 2
+
+
+  # Pod security context - run as non-root user
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Container security context - minimize privileges
+  container:
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      privileged: false
+      runAsNonRoot: true
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    resources:
+      limits:
+        memory: 384Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+    # De defaults (QPS 20 / burst 50) verzadigen tijdens sync-stormen: de
+    # vpol/mpol-handlers maken hun EphemeralReports in het admission-pad en
+    # blokkeren dan op de client rate limiter tot voorbij de 10s
+    # webhook-timeout (fail-closed) — applies van ArgoCD falen dan clusterbreed.
+    extraArgs:
+      clientRateLimitQPS: 300
+      clientRateLimitBurst: 600
+
+  # Anti-affinity for high availability
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - admission-controller
+          topologyKey: kubernetes.io/hostname
+
+# Background controller configuration
 backgroundController:
+  enabled: true
+  replicas: 2
+
+  # Extra RBAC voor generate policies:
+  # background-controller moet ServiceAccounts, PDBs en NetworkPolicies
+  # kunnen aanmaken/bijwerken/verwijderen.
+  # NetworkPolicies zijn nodig voor generate-default-deny-networkpolicy
+  # (OWASP K8s Top 10 - K07/2022, K05/2025).
+  rbac:
+    clusterRole:
+      extraResources:
+        - apiGroups:
+            - ""
+          resources:
+            - serviceaccounts
+          verbs:
+            - create
+            - update
+            - patch
+            - delete
+        - apiGroups:
+            - policy
+          resources:
+            - poddisruptionbudgets
+          verbs:
+            - create
+            - update
+            - patch
+            - delete
+        - apiGroups:
+            - networking.k8s.io
+          resources:
+            - networkpolicies
+          verbs:
+            - create
+            - update
+            - patch
+            - delete
+
+  # Pod security context - run as non-root user
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Container security context - minimize privileges
+  container:
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      privileged: false
+      runAsNonRoot: true
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    resources:
+      limits:
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+  # Anti-affinity for high availability
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - background-controller
+          topologyKey: kubernetes.io/hostname
+
+# Cleanup controller configuration
+cleanupController:
+  enabled: true
   replicas: 1
+
+
+  # Pod security context - run as non-root user
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Container security context - minimize privileges
+  container:
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      privileged: false
+      runAsNonRoot: true
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    resources:
+      limits:
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+  # Anti-affinity for high availability
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - cleanup-controller
+          topologyKey: kubernetes.io/hostname
+
+# Reports controller configuration
 reportsController:
-  replicas: 1
+  enabled: true
+  replicas: 2
+
+  # Pod security context - run as non-root user
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Container security context - minimize privileges
+  container:
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      privileged: false
+      runAsNonRoot: true
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    resources:
+      limits:
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+  # Anti-affinity for high availability
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - reports-controller
+          topologyKey: kubernetes.io/hostname
+
+# Enable generate success events
+generateSuccessEvents: false
+
+# Configure policy reports
+policyReports:
+  enabled: true
+
+# Configure metrics
+metricsService:
+  create: true
+  port: 8000
+
+# Configure webhooks
+webhooks:
+  nodeSelector:
+    kubernetes.io/os: linux
+  tolerations: []
+
+  # Webhook timeout (default is 10s, set to reasonable value)
+  timeoutSeconds: 10
+
+  # Webhook failure policy
+  # Projectafspraak (admission-policy): Ignore zolang alle policies Audit zijn.
+  failurePolicy: Ignore
+
+  # TLS configuration for secure webhook communication
+  # The Helm chart will generate certificates if not provided
+  generateCertificate: true
+
+# Enable PolicyExceptions so specific namespaces can be
+# exempted from policies.
 features:
+  # Projectafspraak (admission-policy): dwing Ignore af voor alle webhooks
+  # zolang alle policies Audit zijn.
   forceFailurePolicyIgnore:
     enabled: true
-  generateValidatingAdmissionPolicy:
+  # Geen report-creatie per admission request: bij sync-stormen drukt dat de
+  # admission-handlers voorbij de webhook-timeout. PolicyReports blijven
+  # bestaan via de background scans van de reports/background controllers.
+  admissionReports:
     enabled: false
   policyExceptions:
-    enabled: false
+    enabled: true
+    # Empty namespace = PolicyExceptions allowed in all namespaces.
+    # Restrict to "kyverno" to only allow platform-managed exceptions.
+    namespace: "kyverno"
+  # Disable controller-runtime metrics (port 8080) to avoid conflict
+  # with other hostNetwork pods. Kyverno's own
+  # metrics on port 8000 are sufficient.
+  controllerRuntimeMetrics:
+    bindAddress: "0"
+
+# Global configuration
+config:
+  # Enable or disable resource filters
+  resourceFilters:
+    - "[Event,*,*]"
+    - "[*,kube-system,*]"
+    - "[*,kube-public,*]"
+    - "[*,kube-node-lease,*]"
+    - "[Node,*,*]"
+    - "[APIService,*,*]"
+    - "[TokenReview,*,*]"
+    - "[SubjectAccessReview,*,*]"
+    - "[SelfSubjectAccessReview,*,*]"
+    - "[Binding,*,*]"
+    - "[ReplicaSet,*,*]"
+    - "[AdmissionReport,*,*]"
+    - "[ClusterAdmissionReport,*,*]"
+    - "[BackgroundScanReport,*,*]"
+    - "[ClusterBackgroundScanReport,*,*]"
+
+  # Exclude namespaces from Kyverno
+  excludeKyvernoNamespace: true
+
+# Network policy for Kyverno components
+# This restricts network access to only what's necessary
 networkPolicy:
-  enabled: false
+  enabled: true
+  ingressFrom: []
+  egressTo: []
+
+# RBAC configuration
+rbac:
+  create: true
+  serviceAccount:
+    create: true
+    # Annotations for service account (e.g., for Workload Identity)
+    annotations: {}
+
+# Security settings
+# Automatically create service accounts with minimal permissions
+serviceAccounts:
+  admissionController:
+    create: true
+    automountServiceAccountToken: true
+  backgroundController:
+    create: true
+    automountServiceAccountToken: true
+  cleanupController:
+    create: true
+    automountServiceAccountToken: true
+  reportsController:
+    create: true
+    automountServiceAccountToken: true
+
+# Pod disruption budgets for high availability
+podDisruptionBudget:
+  admissionController:
+    enabled: true
+    minAvailable: 1
+  backgroundController:
+    enabled: true
+    minAvailable: 1
+  cleanupController:
+    enabled: true
+    minAvailable: 1
+  reportsController:
+    enabled: true
+    minAvailable: 1
+
+# Limit policy updates to reduce attack surface
+# Only update policies when necessary
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+# Logging configuration (for audit and debugging)
+logging:
+  level: info
+  format: json
+
+# Enable admission controller signature verification
+# This ensures policies are properly signed
+admissionReports:
+  enabled: true
+
+# Background scan settings
+backgroundScan:
+  enabled: true
+  # Scan interval (set appropriately based on cluster size)
+  interval: 1h
+  # Skip resource filters for background scans
+  skipResourceFilters: true

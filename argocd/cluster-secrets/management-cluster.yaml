@@ -6,23 +6,23 @@ metadata:
   labels:
     argocd.argoproj.io/secret-type: cluster
     appset: managed
-    argocd-install: 'false'
-    platform/cilium: 'false'
-    platform/kyverno: 'false'
-    platform/kyverno-policies: 'false'
-    platform/cert-manager: 'false'
-    platform/envoy-gateway: 'false'
-    apps/homeassistant: 'false'
-    apps/paperclip: 'false'
-    apps/hermes: 'false'
-    apps/claude-agent: 'false'
-    apps/codex-agent: 'false'
-    apps/opencode-agent: 'false'
+    argocd-install: "false"
+    cilium-install: "false"
+    platform/cilium: "false"
+    platform/kyverno: "false"
+    platform/kyverno-policies: "false"
+    platform/cert-manager: "false"
+    platform/envoy-gateway: "false"
+    apps/homeassistant: "false"
+    apps/paperclip: "false"
+    apps/hermes: "false"
+    apps/claude-agent: "false"
+    apps/codex-agent: "false"
+    apps/opencode-agent: "false"
 type: Opaque
 stringData:
   name: management
   project: platform
   server: https://kubernetes.default.svc
-  config: '{}
-
-    '
+  config: |
+    {}

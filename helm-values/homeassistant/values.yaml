@@ -1,18 +1,29 @@
-# Uitgeschakeld tot build, identiteit, probes en herstelpad zijn gecontroleerd.
-enabled: false
+# Community-chart pajikos/home-assistant-helm-chart (versie in versions.yaml).
+# Uitrol blijft uit via clusterlabel apps/homeassistant=false. Open vóór aanzetten:
+# image-digest, niet-root UID/GID onder PSA restricted, integraties
+# (mDNS/SSDP/USB/Zigbee), LAN-poorten en eventuele aparte hardware-uitzondering.
 image:
-  repository: ''
-  digest: ''
-command: []
-args: []
-existingSecret: ''
-containerPort: 0
-runAsUser: null
-runAsGroup: null
-storage:
-  size: 6Gi
-  mountPath: /config
-  storageClassName: local-path
+  repository: ghcr.io/home-assistant/home-assistant
+  # Leeg = appVersion van de chart. Vóór aanzetten vastzetten op tag@digest.
+  tag: ""
+controller:
+  type: Deployment
+deploymentStrategy: Recreate
+replicaCount: 1
+hostNetwork: false
+persistence:
+  enabled: true
+  # PVC uit manifests/homeassistant/base met Prune=false,Delete=false.
+  existingClaim: homeassistant-config
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
 resources:
   requests:
     cpu: 50m
@@ -20,4 +31,3 @@ resources:
   limits:
     memory: 2Gi
 nodeSelector: {}
-runtimeVerified: false

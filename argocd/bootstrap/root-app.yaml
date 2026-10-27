@@ -3,6 +3,7 @@ kind: Application
 metadata:
   name: root
   namespace: argocd
+  # Cascade delete: remove all child apps when the root app is deleted.
 spec:
   project: platform
   source:
@@ -20,4 +21,4 @@ spec:
       prune: false
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true

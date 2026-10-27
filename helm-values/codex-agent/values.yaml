@@ -1,22 +1,44 @@
-enabled: false
-image:
-  repository: ''
-  digest: ''
-command: []
-args: []
-existingSecret: ''
-containerPort: 0
-runAsUser: null
-runAsGroup: null
-storage:
-  size: 3Gi
-  mountPath: ''
-  storageClassName: local-path
-resources:
-  requests:
-    cpu: 50m
-    memory: 128Mi
-  limits:
-    memory: 256Mi
-nodeSelector: {}
-runtimeVerified: false
+# Generieke bjw-s app-template (versie in versions.yaml); eigen worker zonder
+# upstream-chart. Uitrol blijft uit via clusterlabel apps/codex-agent=false.
+# Open vóór aanzetten: worker-image tag@digest,
+# command, poort, UID/GID, secretnaam en de gedeelde dispatcherlimiet.
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+controllers:
+  worker:
+    type: deployment
+    replicas: 1
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: TODO-worker-image
+          tag: TODO-pin-tag@sha256
+        envFrom: []
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+persistence:
+  # PVC uit manifests/codex-agent/base met Prune=false,Delete=false.
+  work:
+    existingClaim: codex-agent-work
+    globalMounts:
+    - path: /work
+  tmp:
+    type: emptyDir
+    globalMounts:
+    - path: /tmp

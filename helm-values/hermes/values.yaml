@@ -1,18 +1,28 @@
-# Uitgeschakeld tot build, identiteit, probes en herstelpad zijn gecontroleerd.
-enabled: false
+# Community-chart jyje/hermes-agent-helm (versie in versions.yaml).
+# Uitrol blijft uit via clusterlabel apps/hermes=false. Open vóór aanzetten:
+# image-digest gelijk aan de huidige Pi-build, gatewaycommand, auth/health,
+# toolbackend, UID/GID onder PSA restricted en echte netwerkstromen.
 image:
-  repository: ''
-  digest: ''
-command: []
-args: []
-existingSecret: ''
-containerPort: 0
-runAsUser: null
-runAsGroup: null
-storage:
-  size: 8Gi
+  repository: nousresearch/hermes-agent
+  # Leeg = appVersion van de chart. Vóór aanzetten vastzetten op tag@digest.
+  tag: ""
+controller:
+  type: deployment
+replicaCount: 1
+persistence:
+  enabled: true
   mountPath: /opt/data
-  storageClassName: local-path
+  # PVC uit manifests/hermes/base met Prune=false,Delete=false.
+  existingClaim: hermes-data
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
 resources:
   requests:
     cpu: 50m
@@ -20,4 +30,12 @@ resources:
   limits:
     memory: 2Gi
 nodeSelector: {}
-runtimeVerified: false
+# De chart zet `env` in een eigen Secret. Geen sleutels in Git: leeg laten en
+# echte sleutels via een lokaal aangemaakte Secret koppelen (extraEnvFrom).
+# Let op: de chart rendert dan nog een lege Secret; project workloads blokkeert
+# kind Secret. Zie preparation-state.yaml.
+env: {}
+extraEnvFrom: []
+# Helm-testjob uit; Argo slaat testhooks ook over.
+tests:
+  enabled: false

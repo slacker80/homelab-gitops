@@ -6,42 +6,44 @@ metadata:
 spec:
   goTemplate: true
   goTemplateOptions:
-  - missingkey=error
+    - missingkey=error
   syncPolicy:
     preserveResourcesOnDeletion: true
   generators:
-  - matrix:
-      generators:
-      - clusters:
-          selector:
-            matchLabels:
-              apps/paperclip: 'true'
-      - git:
-          repoURL: https://github.com/slacker80/homelab-gitops.git
-          revision: main
-          files:
-          - path: helm-values/versions.yaml
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  apps/paperclip: 'true'
+          - git:
+              repoURL: https://github.com/slacker80/homelab-gitops.git
+              revision: main
+              files:
+                - path: helm-values/versions.yaml
   template:
     metadata:
       name: paperclip-{{ .nameNormalized }}
     spec:
       project: workloads
       sources:
-      - repoURL: https://github.com/slacker80/homelab-gitops.git
-        targetRevision: main
-        path: charts/paperclip
-        helm:
-          releaseName: paperclip
-          valueFiles:
-          - $values/helm-values/paperclip/values.yaml
-          - $values/helm-values/paperclip/values-{{ .name }}.yaml
-          ignoreMissingValueFiles: false
-      - repoURL: https://github.com/slacker80/homelab-gitops.git
-        targetRevision: main
-        ref: values
-      - repoURL: https://github.com/slacker80/homelab-gitops.git
-        targetRevision: main
-        path: manifests/paperclip/{{ .name }}
+        # Generieke bjw-s app-template; geen officiële Paperclip-chart gevonden.
+        - repoURL: https://bjw-s-labs.github.io/helm-charts
+          chart: app-template
+          targetRevision: '{{ coalesce (index (index . "paperclip") .name) (index (index . "paperclip") "default") }}'
+          helm:
+            releaseName: paperclip
+            valueFiles:
+              - $values/helm-values/paperclip/values.yaml
+              - $values/helm-values/paperclip/values-{{ .name }}.yaml
+            ignoreMissingValueFiles: false
+        - repoURL: https://github.com/slacker80/homelab-gitops.git
+          targetRevision: main
+          ref: values
+        # Extra manifests, waaronder de PVC('s) met Prune=false,Delete=false.
+        - repoURL: https://github.com/slacker80/homelab-gitops.git
+          targetRevision: main
+          path: manifests/paperclip/{{ .name }}
       destination:
         server: '{{ .server }}'
         namespace: apps-paperclip
@@ -49,5 +51,14 @@ spec:
         automated:
           prune: true
           selfHeal: true
+        # Argo maakt de namespace met PSA-labels aan. Zo'n namespace wordt
+        # normaal niet door de Application gevolgd en dus niet verwijderd.
+        managedNamespaceMetadata:
+          labels:
+            pod-security.kubernetes.io/enforce: restricted
+            pod-security.kubernetes.io/enforce-version: v1.36
+            pod-security.kubernetes.io/audit: restricted
+            pod-security.kubernetes.io/warn: restricted
         syncOptions:
-        - ServerSideApply=true
+          - CreateNamespace=true
+          - ServerSideApply=true

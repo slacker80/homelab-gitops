@@ -1,13 +1,14 @@
 ready: false
 blockers:
-  - Helm-keuze bevestigd; bepaal definitieve Terraform/Argo-beheergrens en implementeer root/toegang/overdracht.
-  - Controleer en pin echte app/workerimages, commando's, UID/GID, probes en secretreferenties.
-  - Voeg eigen PostgreSQL StatefulSet, 8Gi PVC en consistente Paperclip dump/files/keys-restore toe.
-  - Pin local-path-provisioner 0.0.37 en bind Talos UserVolumes aan de echte worker-datadisks met Retain.
+  - Overdracht na Terraform-bootstrap (SMA-150) in homelab-infra afronden; daarna pas argocd-install/cilium-install aanzetten.
+  - Root, repositorytoegang en AppProject platform bij bootstrap; root valt buiten zijn eigen child-set.
+  - Pin echte app/workerimages (tag@digest), commando's, UID/GID onder PSA restricted, probes en secretnamen; vervang alle TODO-waarden.
+  - Hermes-chart rendert altijd een eigen (lege) env-Secret; project workloads blokkeert kind Secret. Kies uitzondering of andere secretroute.
+  - Paperclip-datadir, poort/health, PostgreSQL-versie en consistente dump/files/keys-restore bevestigen.
+  - Pin local-path-provisioner 0.0.37 met namespace local-path-storage (PSA privileged via managedNamespaceMetadata) en Talos UserVolumes met Retain.
   - Complete componentgerichte CNPs vóór inschakelen CCNP; echte poorten en bestemmingen controleren.
   - Argo Application-health en controller/CRD/webhook-readiness uitwerken; waves alleen zijn onvoldoende.
   - Dispatcher/bridge met maximaal één actieve taak en gezamenlijk 2Gi codingbudget aantoonbaar afdwingen.
-  - Lokaal secrets-script en versleutelde externe herstelset voorbereiden; geen decryptiesleutel in Argo.
-  - Cilium zelfbeheer afstemmen op volledige render uit homelab-infra; geen gedeeltelijk overnemen.
+  - Lokaal secrets-script en versleutelde externe herstelset voorbereiden; script maakt zo nodig de namespace zonder labels aan.
   - Gateway API, TLS en eventuele Issuer invullen met echte adressen en namen.
   - Afzonderlijke live autorisatie, directe API-route, functionele tests en herstelproef op SMA-102.

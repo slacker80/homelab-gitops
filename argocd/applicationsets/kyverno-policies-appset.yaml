@@ -6,24 +6,24 @@ metadata:
 spec:
   goTemplate: true
   goTemplateOptions:
-  - missingkey=error
+    - missingkey=error
   generators:
-  - matrix:
-      generators:
-      - clusters:
-          selector:
-            matchLabels:
-              platform/kyverno-policies: 'true'
-      - git:
-          repoURL: https://github.com/slacker80/homelab-gitops.git
-          revision: main
-          files:
-          - path: helm-values/versions.yaml
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  platform/kyverno-policies: "true"
+          - git:
+              repoURL: https://github.com/slacker80/homelab-gitops.git
+              revision: main
+              files:
+                - path: helm-values/versions.yaml
   template:
     metadata:
-      name: kyverno-policies-{{ .nameNormalized }}
+      name: "kyverno-policies-{{ .nameNormalized }}"
       annotations:
-        argocd.argoproj.io/sync-wave: '3'
+        argocd.argoproj.io/sync-wave: "3"
       labels:
         app.kubernetes.io/part-of: platform
         app.kubernetes.io/name: kyverno-policies
@@ -31,32 +31,32 @@ spec:
     spec:
       project: platform
       sources:
-      - repoURL: https://kyverno.github.io/kyverno
-        chart: kyverno-policies
-        targetRevision: '{{ coalesce (index (index . "kyverno-policies") .name) (index (index . "kyverno-policies") "default")
-          }}'
-        helm:
-          releaseName: kyverno-policies
-          ignoreMissingValueFiles: false
-          valueFiles:
-          - $values/helm-values/kyverno-policies/values.yaml
-          - $values/helm-values/kyverno-policies/values-{{ .name }}.yaml
-          parameters:
-          - name: clusterName
-            value: '{{ .name }}'
-      - repoURL: https://github.com/slacker80/homelab-gitops.git
-        targetRevision: main
-        ref: values
+        - repoURL: https://kyverno.github.io/kyverno
+          chart: kyverno-policies
+          targetRevision: '{{ coalesce (index (index . "kyverno-policies") .name) (index (index . "kyverno-policies") "default") }}'
+          helm:
+            releaseName: kyverno-policies
+            ignoreMissingValueFiles: false
+            valueFiles:
+              - $values/helm-values/kyverno-policies/values.yaml
+              - $values/helm-values/kyverno-policies/values-{{ .name }}.yaml
+            parameters:
+              - name: clusterName
+                value: '{{ .name }}'
+        - repoURL: https://github.com/slacker80/homelab-gitops.git
+          targetRevision: main
+          ref: values
+        # Platform CEL-policies en PolicyExceptions (per-cluster overlay)
       destination:
-        server: '{{ .server }}'
+        server: "{{ .server }}"
         namespace: kyverno
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
-        - CreateNamespace=true
-        - ServerSideApply=true
-        - RespectIgnoreDifferences=true
+          - CreateNamespace=true
+          - ServerSideApply=true
+          - RespectIgnoreDifferences=true
   syncPolicy:
     preserveResourcesOnDeletion: true

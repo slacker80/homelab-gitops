@@ -6,17 +6,17 @@ metadata:
 spec:
   goTemplate: true
   goTemplateOptions:
-  - missingkey=error
+    - missingkey=error
   generators:
-  - clusters:
-      selector:
-        matchLabels:
-          platform/cilium: 'true'
+    - clusters:
+        selector:
+          matchLabels:
+            platform/cilium: "true"
   template:
     metadata:
-      name: cilium-policies-{{ .nameNormalized }}
+      name: "cilium-policies-{{ .nameNormalized }}"
       annotations:
-        argocd.argoproj.io/sync-wave: '1'
+        argocd.argoproj.io/sync-wave: "1"
       labels:
         app.kubernetes.io/part-of: platform
         app.kubernetes.io/name: cilium-policies
@@ -28,13 +28,14 @@ spec:
         targetRevision: main
         path: manifests/cilium/{{ .name }}
       destination:
-        server: '{{ .server }}'
+        server: "{{ .server }}"
         namespace: kube-system
+      # Requires an existing Cilium installation; only policies are managed here.
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
-        - ServerSideApply=true
+          - ServerSideApply=true
   syncPolicy:
     preserveResourcesOnDeletion: true

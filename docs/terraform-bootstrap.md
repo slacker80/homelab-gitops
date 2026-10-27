@@ -1,25 +1,40 @@
-# Gedeelde invoer voor Terraform-bootstrap
+# Terraform-bootstrap en overdracht aan Argo
 
-De voorbereide Terraform-root staat in homelab-infra: `terraform/platform-bootstrap`.
-Centrale versies en basis-/managementvalues staan uitsluitend hier. Cilium 1.20.4
-is toegevoegd aan `helm-values/versions.yaml`; de bestaande Talos-compatibele
-Cilium-values zijn overgenomen uit homelab-infra. Argo behoudt chart 10.2.0.
-Beide archieven zijn gepind in `helm-values/chart-checksums.sha256`.
+Besluit (Peter, SMA-150, 27 oktober 2026): Terraform installeert na Talos eerst
+Cilium en daarna Argo CD via Helm. Daarna beheert Argo beide vanuit deze repo.
+Terraform en Argo beheren nooit tegelijk dezelfde release.
 
-Helm maakt bij de eerste Argo-installatie de namespace `argocd` aan. Het bestaande
-namespacebestand beheert daarna dezelfde namespace, geen tweede installatie.
-De eerdere keuze voor Helm is bevestigd; de vraag over het vaste install.yaml
-is vervallen. Installeer nooit ook dat oude installatiebestand.
+## Gedeelde invoer
 
-Nog te kiezen: blijven Cilium en Argo onder Terraform, of draagt Terraform na
-installatie over aan Argo? Eerder projectontwerp vraagt zelfbeheer. Voor die route
-moeten complete renders/CRDs/labels/TLS en stateoverdracht eerst worden uitgewerkt.
-Argo rendert Helm-templates maar beheert niet de Helm-releaseadministratie.
-Alle clusterlabels blijven uit. Root/bootstrap en de overige open punten zijn nog
-niet uitrolgereed. Zie `preparation-state.yaml` en homelab-infra `docs/helm-bootstrap.md`.
+De Terraform-root in homelab-infra (`terraform/platform-bootstrap`) leest de
+chartversies uit `helm-values/versions.yaml` en de values uit
+`helm-values/{cilium,argocd}/values.yaml` plus `values-management.yaml`.
+De chartarchieven zijn gepind in `helm-values/chart-checksums.sha256`.
+Argo gebruikt via `cilium-appset.yaml` en `argocd-appset.yaml` exact dezelfde
+bestanden en dezelfde releasenamen (`cilium` in kube-system, `argocd` in argocd).
+Helm maakt bij de eerste Argo-installatie de namespace `argocd` aan.
 
-Codeherstel: eigen concept-PR sluiten of na merge eigen commit reverten.
-Doelruntime: toekomstig ThinkCentre/Talos-cluster, nog geen live bereikbaarheid
-vastgesteld. Repos via bestaande private GitHub-verbinding bereikbaar.
-Runtimeherstel vereist bekende Git-revisie plus externe state/secrets/appdata;
-niet getest. Geen draaiend systeem gewijzigd.
+Cilium gebruikt `hubble.tls.auto.method: cronJob`. Met de standaardmethode
+`helm` maakt elke render nieuwe certificaten; Argo zou dan blijvend afwijken.
+
+## Volgorde
+
+1. Terraform: Talos, daarna Cilium, daarna Argo CD, repositorytoegang en root.
+2. Argo synchroniseert de root. `cilium-install` en `argocd-install` staan nog uit.
+3. Terraform laat beide releases los zonder ze te verwijderen (`removed`-blok
+   met `destroy = false` in homelab-infra) en `terraform plan` toont geen
+   verdere wijziging aan Cilium of Argo.
+4. Pas dan `cilium-install` en `argocd-install` op `true`. Argo neemt dezelfde
+   objecten over met Server-Side Apply. Cilium heeft geen automatische prune.
+5. Controleer dat beide Applications Synced/Healthy zijn en dat netwerk en
+   Argo-UI blijven werken.
+
+Na stap 4 blijft het Helm-releasesecret van Terraform staan; Argo gebruikt het
+niet. Helm-upgrades daarna alleen nog via deze repo, niet met `helm` of Terraform.
+
+## Terugval
+
+Vóór stap 4: label uit laten; Terraform beheert nog. Na stap 4: labels weer op
+`false` zetten; dankzij `preserveResourcesOnDeletion` blijven de objecten staan.
+Herstel daarna met dezelfde chartversie en values. Deze route is niet getest;
+live uitvoering valt onder SMA-102 met eigen terugvalplan en Peters akkoord.
