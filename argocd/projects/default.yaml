@@ -1,0 +1,18 @@
+# Lock down the default AppProject per ArgoCD security best practices.
+# No application should use the default project — use dedicated projects
+# (platform) instead.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: default
+  namespace: argocd
+spec:
+  description: "LOCKED — do not use. All apps must use a dedicated project."
+  # No source repos allowed
+  sourceRepos: []
+  # No destinations allowed
+  destinations: []
+  # No cluster-scoped resources allowed
+  clusterResourceWhitelist: []
+  # No namespace-scoped resources allowed
+  namespaceResourceWhitelist: []

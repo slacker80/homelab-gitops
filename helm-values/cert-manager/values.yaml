@@ -1,0 +1,43 @@
+crds:
+  enabled: true
+config:
+  apiVersion: controller.config.cert-manager.io/v1alpha1
+  kind: ControllerConfiguration
+  enableGatewayAPI: true
+serviceAccount:
+  create: true
+  name: cert-manager
+replicaCount: 2
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+webhook:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+cainjector:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+nodeSelector:
+  kubernetes.io/os: linux
+securityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+global:
+  logLevel: 2

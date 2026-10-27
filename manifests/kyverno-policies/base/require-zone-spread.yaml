@@ -1,0 +1,37 @@
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: require-zone-spread
+  annotations:
+    policies.kyverno.io/title: "Multi-AZ topologySpreadConstraints"
+    policies.kyverno.io/category: Availability
+    policies.kyverno.io/severity: high
+spec:
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [apps]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [deployments, statefulsets]
+  matchConditions:
+    - name: eligible-workload
+      expression: >-
+        !['kube-system', 'kyverno', 'argocd', 'karpenter',
+          'cert-manager'].exists(n,
+          object.metadata.namespace == n) &&
+        object.spec.?replicas.orValue(1) >= 2 &&
+        !has(object.spec.template.spec.topologySpreadConstraints)
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          [JSONPatch{
+            op: "add",
+            path: "/spec/template/spec/topologySpreadConstraints",
+            value: dyn([dyn({
+              "maxSkew": dyn(1),
+              "topologyKey": dyn("topology.kubernetes.io/zone"),
+              "whenUnsatisfiable": dyn("ScheduleAnyway"),
+              "labelSelector": dyn({"matchLabels": object.spec.selector.matchLabels})
+            })])
+          }]

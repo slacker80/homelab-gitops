@@ -1,0 +1,88 @@
+# Testfixture voor de variant die expliciete securityContext-waarden behoudt.
+# De actieve baseline staat in manifests/kyverno-policies/base/.
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: add-default-security-context
+  annotations:
+    policies.kyverno.io/title: "Add default Pod Security baseline context"
+    policies.kyverno.io/description: >-
+      Voegt veilige Pod- en container-securityContext defaults toe en behoudt
+      waarden die de workload expliciet heeft ingesteld.
+spec:
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [pods]
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{
+            spec: Object.spec{
+              securityContext: Object.spec.securityContext{
+                runAsNonRoot: object.spec.?securityContext.?runAsNonRoot.orValue(true),
+                seccompProfile: Object.spec.securityContext.seccompProfile{
+                  type: object.spec.?securityContext.?seccompProfile.?type.orValue('RuntimeDefault')
+                }
+              },
+              containers: object.spec.containers.map(container, Object.spec.containers{
+                name: container.name,
+                securityContext: Object.spec.containers.securityContext{
+                  allowPrivilegeEscalation: container.?securityContext.?allowPrivilegeEscalation.orValue(false),
+                  privileged: container.?securityContext.?privileged.orValue(false),
+                  readOnlyRootFilesystem: container.?securityContext.?readOnlyRootFilesystem.orValue(true),
+                  runAsNonRoot: container.?securityContext.?runAsNonRoot.orValue(true),
+                  seccompProfile: Object.spec.containers.securityContext.seccompProfile{
+                    type: container.?securityContext.?seccompProfile.?type.orValue('RuntimeDefault')
+                  }
+                }
+              }),
+              initContainers: object.spec.?initContainers.orValue([]).map(container, Object.spec.initContainers{
+                name: container.name,
+                securityContext: Object.spec.initContainers.securityContext{
+                  allowPrivilegeEscalation: container.?securityContext.?allowPrivilegeEscalation.orValue(false),
+                  privileged: container.?securityContext.?privileged.orValue(false),
+                  readOnlyRootFilesystem: container.?securityContext.?readOnlyRootFilesystem.orValue(true),
+                  runAsNonRoot: container.?securityContext.?runAsNonRoot.orValue(true),
+                  seccompProfile: Object.spec.initContainers.securityContext.seccompProfile{
+                    type: container.?securityContext.?seccompProfile.?type.orValue('RuntimeDefault')
+                  }
+                }
+              })
+            }
+          }
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          [{
+            "spec": has(object.spec.containers) ? object.spec :
+              has(object.spec.template) ? object.spec.template.spec :
+                object.spec.jobTemplate.spec.template.spec,
+            "path": dyn(has(object.spec.containers) ? "/spec" :
+              has(object.spec.template) ? "/spec/template/spec" :
+                "/spec/jobTemplate/spec/template/spec")
+          }].map(pod,
+            pod.spec.containers
+              .filter(container, !container.?securityContext.?capabilities.?drop.hasValue())
+              .map(container, JSONPatch{
+                op: "add",
+                path: pod.path + "/containers/" + string(pod.spec.containers.indexOf(container)) +
+                  (container.?securityContext.?capabilities.hasValue() ? "/securityContext/capabilities/drop" :
+                    "/securityContext/capabilities"),
+                value: container.?securityContext.?capabilities.hasValue() ? dyn(["ALL"]) :
+                  dyn({"drop": ["ALL"]})
+              }) +
+            pod.spec.?initContainers.orValue([])
+              .filter(container, !container.?securityContext.?capabilities.?drop.hasValue())
+              .map(container, JSONPatch{
+                op: "add",
+                path: pod.path + "/initContainers/" + string(pod.spec.initContainers.indexOf(container)) +
+                  (container.?securityContext.?capabilities.hasValue() ? "/securityContext/capabilities/drop" :
+                    "/securityContext/capabilities"),
+                value: container.?securityContext.?capabilities.hasValue() ? dyn(["ALL"]) :
+                  dyn({"drop": ["ALL"]})
+              })
+          )[0]

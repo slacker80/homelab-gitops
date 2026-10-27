@@ -1,0 +1,42 @@
+# OWASP Top 10 Kubernetes: K03 (2022), K02 (2025)
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: restrict-wildcard-rbac
+  annotations:
+    policies.kyverno.io/title: "Restrict wildcard verbs/resources in RBAC"
+    policies.kyverno.io/category: OWASP K8s Top 10
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Role, ClusterRole
+spec:
+  validationActions: [Deny]
+  evaluation:
+    background:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [rbac.authorization.k8s.io]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [roles, clusterroles]
+  matchConditions:
+    - name: exclude-built-in-roles
+      expression: >-
+        !['cluster-admin', 'admin', 'edit', 'view'].exists(n, object.metadata.name == n) &&
+        !object.metadata.name.startsWith('system:')
+    # Skip roles without an explicit rules list. Aggregated or placeholder
+    # (Cluster)Roles carry rules=null (present-but-null); CEL's .orValue([])
+    # substitutes only for an ABSENT field, so null.all(...) would still raise
+    # "got 'types.Null', expected iterable type". A null-rules role grants
+    # nothing, so there is no wildcard to catch.
+    - name: has-explicit-rules
+      expression: has(object.rules) && object.rules != null
+  validations:
+    # rules is guaranteed non-null here; nonResourceURL rules still omit
+    # apiGroups/resources, so guard those inner lists for an absent field.
+    - expression: >-
+        object.rules.all(r,
+          !r.?verbs.orValue([]).exists(v, v == '*') &&
+          !r.?resources.orValue([]).exists(v, v == '*') &&
+          !r.?apiGroups.orValue([]).exists(v, v == '*'))
+      message: Wildcard '*' in RBAC apiGroups, resources of verbs is niet toegestaan.

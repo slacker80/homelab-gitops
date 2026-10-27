@@ -1,0 +1,39 @@
+# Default deny all ingress and egress traffic for non-platform namespaces.
+#
+# In Cilium, selecting an endpoint with a CiliumClusterwideNetworkPolicy
+# without rules switches that endpoint to "default deny" for both
+# ingress and egress. Additional CiliumNetworkPolicies in team namespaces
+# can then explicitly allow required traffic.
+#
+# Platform namespaces zijn uitgesloten zodat systeemcomponenten
+# (ArgoCD, Kyverno, Cilium, etc.) niet geblokkeerd worden.
+# Workloadnamespaces vallen WEL onder deze policy.
+#
+# Teams moeten CiliumNetworkPolicies aanmaken in hun namespace
+# voor service-to-service verkeer, ingress vanaf de load balancer,
+# en egress naar externe services (databases en object storage).
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: default-deny-non-platform
+  labels:
+    app.kubernetes.io/part-of: platform
+    app.kubernetes.io/managed-by: argocd
+spec:
+  description: "Default deny all traffic for non-platform namespaces (NEN 7510 network segmentation)"
+  # endpointSelector wordt centraal beheerd via platform-namespace-exclusions.yaml
+  endpointSelector: {}
+  # Default-deny via Cilium's reserved `none` entity: matcht expliciet geen
+  # verkeer, maar de aanwezigheid van ingress/egress secties activeert
+  # Cilium's implicit deny. Cilium 1.18+ vereist via anyOf dat minimaal
+  # ingress of egress aanwezig is, dus `enableDefaultDeny` alleen volstaat
+  # niet. Andere CiliumNetworkPolicies (allow-dns,
+  # namespace policies) kunnen wél verkeer openzetten — rules worden OR'd
+  # across policies. Gebruik GEEN ingressDeny/egressDeny: die overrulen
+  # allow-policies.
+  ingress:
+    - fromEntities:
+        - none
+  egress:
+    - toEntities:
+        - none

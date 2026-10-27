@@ -1,0 +1,47 @@
+# OWASP Top 10 Kubernetes: K07 (2022), K05 (2025)
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: generate-default-deny-networkpolicy
+  annotations:
+    policies.kyverno.io/title: "Generate default-deny NetworkPolicy per namespace"
+    policies.kyverno.io/category: OWASP K8s Top 10
+    policies.kyverno.io/severity: high
+spec:
+  evaluation:
+    synchronize:
+      enabled: true
+    generateExisting:
+      enabled: false
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [namespaces]
+  matchConditions:
+    - name: exclude-platform-namespaces
+      expression: >-
+        !['kube-system', 'kube-public', 'kube-node-lease', 'argocd', 'kyverno',
+          'cert-manager', 'karpenter',
+          'ingress-test', 'cilium-secrets',
+          'envoy-gateway-system']
+          .exists(n, object.metadata.name == n)
+  variables:
+    - name: namespace
+      expression: object.metadata.name
+    - name: downstream
+      expression: >-
+        [{
+          "apiVersion": dyn("networking.k8s.io/v1"),
+          "kind": dyn("NetworkPolicy"),
+          "metadata": dyn({
+            "name": dyn("default-deny")
+          }),
+          "spec": dyn({
+            "podSelector": dyn({}),
+            "policyTypes": dyn(["Ingress", "Egress"])
+          })
+        }]
+  generate:
+    - expression: generator.Apply(variables.namespace, variables.downstream)

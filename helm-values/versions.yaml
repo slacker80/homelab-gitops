@@ -1,0 +1,21 @@
+# Centrale chartversies; alle clusters gebruiken de default tenzij expliciet overschreven.
+
+argocd:
+  # renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
+  default: "10.2.0"
+
+kyverno:
+  # renovate: datasource=helm depName=kyverno registryUrl=https://kyverno.github.io/kyverno
+  default: "3.8.2"
+
+kyverno-policies:
+  # renovate: datasource=helm depName=kyverno-policies registryUrl=https://kyverno.github.io/kyverno
+  default: "3.8.2"
+
+cert-manager:
+  # renovate: datasource=helm depName=cert-manager registryUrl=https://charts.jetstack.io
+  default: "v1.21.0"
+
+envoy-gateway:
+  # renovate: datasource=docker depName=docker.io/envoyproxy/gateway-helm versioning=semver-coerced
+  default: "1.8.3"

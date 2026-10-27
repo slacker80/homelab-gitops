@@ -1,0 +1,32 @@
+apiVersion: cli.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: add-default-security-context
+policies:
+  - policy.yaml
+resources:
+  - resources.yaml
+results:
+  - isMutatingPolicy: true
+    kind: Pod
+    patchedResources: expected.yaml
+    policy: add-default-security-context
+    resources:
+      - default/pod-without-context
+      - default/pod-with-partial-capabilities
+      - default/pod-with-explicit-security-context
+    result: pass
+  - isMutatingPolicy: true
+    kind: Deployment
+    patchedResources: expected.yaml
+    policy: add-default-security-context
+    resources:
+      - default/deployment-with-defaults
+    result: pass
+  - isMutatingPolicy: true
+    kind: CronJob
+    patchedResources: expected.yaml
+    policy: add-default-security-context
+    resources:
+      - default/cronjob-with-defaults
+    result: pass

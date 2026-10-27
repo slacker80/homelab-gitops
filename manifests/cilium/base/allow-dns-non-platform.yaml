@@ -1,0 +1,30 @@
+# Allow DNS egress for non-platform namespaces.
+#
+# De default-deny-non-platform policy blokkeert alle traffic.
+# Deze policy staat DNS lookups toe naar kube-dns in kube-system,
+# zodat service discovery blijft werken.
+#
+# Teams moeten additionele CiliumNetworkPolicies aanmaken
+# voor overig egress verkeer (bijv. naar databases of externe APIs).
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-dns-non-platform
+  labels:
+    app.kubernetes.io/part-of: platform
+    app.kubernetes.io/managed-by: argocd
+spec:
+  description: "Allow DNS egress to kube-dns for non-platform namespaces"
+  # endpointSelector wordt centraal beheerd via platform-namespace-exclusions.yaml
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP

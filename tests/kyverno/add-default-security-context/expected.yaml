@@ -1,0 +1,166 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-without-context
+  namespace: default
+spec:
+  securityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      image: nginx:1.27
+      securityContext:
+        allowPrivilegeEscalation: false
+        privileged: false
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+        capabilities:
+          drop:
+            - ALL
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-partial-capabilities
+  namespace: default
+spec:
+  securityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  initContainers:
+    - name: setup
+      image: busybox:1.37
+      securityContext:
+        allowPrivilegeEscalation: false
+        privileged: false
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+        capabilities:
+          add:
+            - CHOWN
+          drop:
+            - ALL
+  containers:
+    - name: app
+      image: nginx:1.27
+      securityContext:
+        allowPrivilegeEscalation: false
+        privileged: false
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+          drop:
+            - ALL
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-explicit-security-context
+  namespace: default
+spec:
+  securityContext:
+    runAsNonRoot: false
+    seccompProfile:
+      type: Unconfined
+  initContainers:
+    - name: setup
+      image: busybox:1.37
+      securityContext:
+        allowPrivilegeEscalation: true
+        privileged: false
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+        capabilities:
+          add:
+            - CHOWN
+          drop:
+            - NET_RAW
+  containers:
+    - name: app
+      image: nginx:1.27
+      securityContext:
+        allowPrivilegeEscalation: true
+        privileged: true
+        readOnlyRootFilesystem: false
+        runAsNonRoot: false
+        seccompProfile:
+          type: Unconfined
+        capabilities:
+          add:
+            - NET_ADMIN
+          drop: []
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-with-defaults
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: defaulted
+  template:
+    metadata:
+      labels:
+        app: defaulted
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: app
+          image: nginx:1.27
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - ALL
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cronjob-with-defaults
+  namespace: default
+spec:
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: app
+              image: busybox:1.37
+              securityContext:
+                allowPrivilegeEscalation: false
+                privileged: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                seccompProfile:
+                  type: RuntimeDefault
+                capabilities:
+                  drop:
+                    - ALL
