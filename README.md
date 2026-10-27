@@ -15,8 +15,8 @@ Zie [voorbereiding](docs/voorbereiding.md) en [open punten](preparation-state.ya
 
 De root `argocd/bootstrap/root-app.yaml` heet `root` en leest `argocd/`
 recursief, met `bootstrap/` uitgesloten. Argo, repositorytoegang en het
-AppProject `platform` moeten vooraf bestaan. De definitieve bootstrapbron en
-Argo-zelfbeheer wachten op Peters keuze via SMA-149.
+AppProject `platform` moeten vooraf bestaan. De Helm-keuze is bevestigd. De Terraform-bootstrap en nog te kiezen
+beheergrens staan in [Terraform-bootstrap](docs/terraform-bootstrap.md).
 
 Cluster `management` is overgenomen uit PR 1. Labels op
 `argocd/cluster-secrets/management-cluster.yaml` selecteren de componenten.

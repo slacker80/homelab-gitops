@@ -1,6 +1,6 @@
 ready: false
 blockers:
-  - Argo CD bootstrap en zelfbeheer kiezen met Peter via SMA-149; één eigenaar en dezelfde versie.
+  - Helm-keuze bevestigd; bepaal definitieve Terraform/Argo-beheergrens en implementeer root/toegang/overdracht.
   - Controleer en pin echte app/workerimages, commando's, UID/GID, probes en secretreferenties.
   - Voeg eigen PostgreSQL StatefulSet, 8Gi PVC en consistente Paperclip dump/files/keys-restore toe.
   - Pin local-path-provisioner 0.0.37 en bind Talos UserVolumes aan de echte worker-datadisks met Retain.

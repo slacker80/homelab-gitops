@@ -57,10 +57,11 @@ baseline. De oorspronkelijke ontwikkelaarshandleidingen wachten op herziening.
 
 ## Open keuzes en uitvoering
 
-[SMA-149](/SMA/issues/SMA-149) vraagt Peter via Hermien of Argo zijn eerder
-gekozen vaste installatiebestand houdt, of ook naar de Helm-structuur gaat.
-De bestaande Argo-chart uit PR 1 is bewaard maar uitgeschakeld. Er is nog geen
-bootstrap-script dat twee verschillende beheerders naast elkaar installeert.
+Peter heeft Helm bevestigd en stelt Terraform voor als installatieroute voor
+Cilium en Argo. Gedeelde centrale invoer is voorbereid; zie
+[Terraform-bootstrap](terraform-bootstrap.md). De eerdere vraag over het vaste
+install.yaml is vervallen. Definitieve beheergrens en root/toegang/overdracht
+zijn nog niet uitgewerkt; alle componentlabels blijven uit.
 
 `preparation-state.yaml` bevat alle resterende uitvoeringsblokkades. Onder meer
 local-path-provisioner 0.0.37, echte Talos-volume/nodeselectie, Retain, de lokale
