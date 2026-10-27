@@ -25,11 +25,13 @@ for entry in "${apps[@]}"; do
   "$helm_bin" pull "$chart" --repo "$repo" --version "$ver" --destination "$render_tmp" \
     --repository-cache "$render_tmp/cache" --repository-config "$render_tmp/repositories.yaml"
 done
-(cd -- "$render_tmp" && sha256sum --ignore-missing -c "$repo_root/helm-values/chart-checksums.sha256" >&2)
+"$repo_root/scripts/verify-chart-checksums.sh" "$render_tmp" >&2
 for entry in "${apps[@]}"; do
   read -r app chart _ namespace <<<"$entry"
   ver=$(version "$app")
   args=(-f "$repo_root/helm-values/$app/values.yaml" -f "$repo_root/helm-values/$app/values-management.yaml")
+  # Gelijk aan skipTests in de homeassistant-ApplicationSet.
+  [[ "$app" == homeassistant ]] && args+=(--skip-tests)
   echo "---"
   echo "# app: $app ($chart $ver)"
   "$helm_bin" template "$app" "$render_tmp/$chart-$ver.tgz" \

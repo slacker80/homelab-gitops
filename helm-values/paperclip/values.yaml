@@ -1,7 +1,9 @@
 # Generieke bjw-s app-template (versie in versions.yaml); geen officiële
 # Paperclip-chart gevonden. Uitrol blijft uit via clusterlabel apps/paperclip=false.
-# Open vóór aanzetten: build/tag@digest, datadir,
-# poort/health, UID/GID, secretnaam, PostgreSQL-versie en dump/files/keys-herstel.
+# Open vóór aanzetten: build/tag@digest, health, secretnaam,
+# PostgreSQL-versie/PGDATA en dump/files/keys-herstel. UID/GID, datadir en poort
+# volgen de upstream Dockerfile (node 1000:1000, /paperclip, 3100); controleren
+# tegen de gepinde build. Start onder PSA restricted is nog niet getest.
 defaultPodOptions:
   automountServiceAccountToken: false
   securityContext:
@@ -14,6 +16,17 @@ controllers:
     type: deployment
     replicas: 1
     strategy: Recreate
+    pod:
+      # Vervangt defaultPodOptions.securityContext volledig (geen merge).
+      securityContext:
+        runAsNonRoot: true
+        # Entrypoint start zonder root direct de app (geen UID-remap).
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
     containers:
       app:
         image:
@@ -22,6 +35,7 @@ controllers:
         envFrom: []
         securityContext:
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
@@ -34,6 +48,20 @@ controllers:
   postgres:
     type: statefulset
     replicas: 1
+    statefulset:
+      serviceName:
+        identifier: postgres
+    pod:
+      # Vervangt defaultPodOptions.securityContext volledig (geen merge).
+      securityContext:
+        runAsNonRoot: true
+        # UID/GID van de postgres-gebruiker in het Debian-image (alpine: 70).
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
     containers:
       app:
         image:
@@ -42,6 +70,7 @@ controllers:
         envFrom: []
         securityContext:
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
@@ -78,3 +107,13 @@ persistence:
       postgres:
         app:
         - path: /var/lib/postgresql/data
+  tmp:
+    type: emptyDir
+    globalMounts:
+    - path: /tmp
+  postgres-run:
+    type: emptyDir
+    advancedMounts:
+      postgres:
+        app:
+        - path: /var/run/postgresql

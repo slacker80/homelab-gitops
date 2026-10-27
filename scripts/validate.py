@@ -13,12 +13,24 @@ def check(condition, message):
     if not condition:
         raise ValueError(message)
 
+def image_tags(node):
+    """Alle image-tags in values; een lege tag valt terug op appVersion zonder digest."""
+    if isinstance(node, dict):
+        if "repository" in node and "tag" in node:
+            yield node["tag"]
+        for value in node.values():
+            yield from image_tags(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from image_tags(value)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--release", action="store_true", help="Weiger zolang uitvoeringsblokkades bestaan.")
     args = parser.parse_args()
     count = 0
     todo = []
+    undigested = []
     for path in ROOT.rglob("*.yaml"):
         list(yaml.safe_load_all(path.read_text()))
         count += 1
@@ -62,6 +74,11 @@ def main():
         check(all(c in values_text for c in claims), f"PVC niet gekoppeld: {name}")
         if "TODO" in values_text:
             todo.append(name)
+        if not all("@sha256:" in str(tag) for tag in image_tags(yaml.safe_load(values_text))):
+            undigested.append(name)
+    ha = load("argocd/applicationsets/homeassistant-appset.yaml")["spec"]["template"]["spec"]
+    check(next(x for x in ha["sources"] if "chart" in x)["helm"].get("skipTests") is True,
+          "Home Assistant-testpod moet via skipTests uit")
     check(not (ROOT / "charts").exists(), "Eigen charts/ hoort niet meer te bestaan")
     check(not (ROOT / "manifests/namespaces").exists(), "Namespaces horen via de ApplicationSets te lopen")
     root = load("argocd/bootstrap/root-app.yaml")
@@ -86,9 +103,11 @@ def main():
     check(spec["enableDefaultDeny"] == {"ingress": True, "egress": True}, "Default deny ontbreekt")
     check(not spec.get("ingressDeny") and not spec.get("egressDeny"), "Expliciete deny is verboden")
     print(f"{count} YAML-bestanden leesbaar; voorbereidingsgrenzen consistent.")
-    print(f"GEEN UITROLVRIJGAVE: {len(state['blockers'])} open punten; TODO-waarden in: {', '.join(todo) or 'geen'}.")
+    print(f"GEEN UITROLVRIJGAVE: {len(state['blockers'])} open punten; TODO-waarden in: {', '.join(todo) or 'geen'}; "
+          f"images zonder digest in: {', '.join(undigested) or 'geen'}.")
     if args.release:
-        check(state["ready"] and not state["blockers"] and not todo, "Uitrol geblokkeerd: zie preparation-state.yaml")
+        check(state["ready"] and not state["blockers"] and not todo and not undigested,
+              "Uitrol geblokkeerd: zie preparation-state.yaml")
     return 0
 
 if __name__ == "__main__":

@@ -33,6 +33,9 @@ spec:
           targetRevision: '{{ coalesce (index (index . "homeassistant") .name) (index (index . "homeassistant") "default") }}'
           helm:
             releaseName: homeassistant
+            # De chart rendert altijd een ongepinde busybox-testpod zonder
+            # securityContext en heeft geen values-toggle.
+            skipTests: true
             valueFiles:
               - $values/helm-values/homeassistant/values.yaml
               - $values/helm-values/homeassistant/values-{{ .name }}.yaml

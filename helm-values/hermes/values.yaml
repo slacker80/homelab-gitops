@@ -1,7 +1,8 @@
 # Community-chart jyje/hermes-agent-helm (versie in versions.yaml).
 # Uitrol blijft uit via clusterlabel apps/hermes=false. Open vóór aanzetten:
 # image-digest gelijk aan de huidige Pi-build, gatewaycommand, auth/health,
-# toolbackend, UID/GID onder PSA restricted en echte netwerkstromen.
+# toolbackend en echte netwerkstromen. Securitycontext volgt de
+# values-hardened.yaml van de chart (UID 10000, read-only root, tmpfs).
 image:
   repository: nousresearch/hermes-agent
   # Leeg = appVersion van de chart. Vóór aanzetten vastzetten op tag@digest.
@@ -16,13 +17,31 @@ persistence:
   existingClaim: hermes-data
 podSecurityContext:
   runAsNonRoot: true
+  runAsUser: 10000
+  runAsGroup: 10000
+  fsGroup: 10000
   seccompProfile:
     type: RuntimeDefault
 securityContext:
   allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
   capabilities:
     drop:
     - ALL
+extraVolumes:
+- name: run-tmpfs
+  emptyDir:
+    medium: Memory
+    sizeLimit: 16Mi
+- name: tmp-tmpfs
+  emptyDir:
+    medium: Memory
+    sizeLimit: 64Mi
+extraVolumeMounts:
+- name: run-tmpfs
+  mountPath: /run
+- name: tmp-tmpfs
+  mountPath: /tmp
 resources:
   requests:
     cpu: 50m
@@ -30,11 +49,14 @@ resources:
   limits:
     memory: 2Gi
 nodeSelector: {}
-# De chart zet `env` in een eigen Secret. Geen sleutels in Git: leeg laten en
-# echte sleutels via een lokaal aangemaakte Secret koppelen (extraEnvFrom).
-# Let op: de chart rendert dan nog een lege Secret; project workloads blokkeert
-# kind Secret. Zie preparation-state.yaml.
-env: {}
+# De chart zet `env` altijd in een eigen Secret. `env: {}` laat de default
+# OPENAI_API_KEY-placeholder staan (Helm merget maps); de key op `null` zetten
+# verwijdert hem (`env: null` faalt op het chartschema).
+# Geen sleutels in Git: echte sleutels via een lokaal aangemaakte Secret
+# koppelen (extraEnvFrom). De chart rendert dan nog een lege Secret; project
+# workloads blokkeert kind Secret. Keuze open, zie preparation-state.yaml.
+env:
+  OPENAI_API_KEY: null
 extraEnvFrom: []
 # Helm-testjob uit; Argo slaat testhooks ook over.
 tests:
