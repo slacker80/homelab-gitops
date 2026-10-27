@@ -1,0 +1,5 @@
+apiVersion: v2
+name: paperclip
+type: application
+version: 0.1.0
+description: Voorbereid chart; runtime nog niet gevalideerd.

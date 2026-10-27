@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: hermes
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+  - missingkey=error
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+  - matrix:
+      generators:
+      - clusters:
+          selector:
+            matchLabels:
+              apps/hermes: 'true'
+      - git:
+          repoURL: https://github.com/slacker80/homelab-gitops.git
+          revision: main
+          files:
+          - path: helm-values/versions.yaml
+  template:
+    metadata:
+      name: hermes-{{ .nameNormalized }}
+    spec:
+      project: workloads
+      sources:
+      - repoURL: https://github.com/slacker80/homelab-gitops.git
+        targetRevision: main
+        path: charts/hermes
+        helm:
+          releaseName: hermes
+          valueFiles:
+          - $values/helm-values/hermes/values.yaml
+          - $values/helm-values/hermes/values-{{ .name }}.yaml
+          ignoreMissingValueFiles: false
+      - repoURL: https://github.com/slacker80/homelab-gitops.git
+        targetRevision: main
+        ref: values
+      - repoURL: https://github.com/slacker80/homelab-gitops.git
+        targetRevision: main
+        path: manifests/hermes/{{ .name }}
+      destination:
+        server: '{{ .server }}'
+        namespace: apps-hermes
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - ServerSideApply=true

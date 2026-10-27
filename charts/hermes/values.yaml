@@ -1,0 +1,22 @@
+enabled: false
+image:
+  repository: ''
+  digest: ''
+command: []
+args: []
+existingSecret: ''
+containerPort: 0
+runAsUser: null
+runAsGroup: null
+storage:
+  size: 8Gi
+  mountPath: /opt/data
+  storageClassName: local-path
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 2Gi
+nodeSelector: {}
+runtimeVerified: false

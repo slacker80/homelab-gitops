@@ -1,11 +1,8 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: platform-root
+  name: root
   namespace: argocd
-  # Cascade delete: remove all child apps when the root app is deleted.
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
 spec:
   project: platform
   source:
@@ -14,12 +11,13 @@ spec:
     path: argocd
     directory:
       recurse: true
+      exclude: '{bootstrap/**}'
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
   syncPolicy:
     automated:
-      prune: true
+      prune: false
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+    - CreateNamespace=true

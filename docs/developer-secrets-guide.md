@@ -1,3 +1,7 @@
+> Deze oorspronkelijke PR-1-handleiding is nog niet bijgewerkt. Voor de huidige
+> voorbereiding geldt [voorbereiding.md](voorbereiding.md); oude eigen Kyverno-regels
+> zijn niet actief.
+
 # Secrets
 
 Beheer Kubernetes Secrets buiten deze repository. Commit geen tokens,

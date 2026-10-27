@@ -1,0 +1,13 @@
+ready: false
+blockers:
+  - Argo CD bootstrap en zelfbeheer kiezen met Peter via SMA-149; één eigenaar en dezelfde versie.
+  - Controleer en pin echte app/workerimages, commando's, UID/GID, probes en secretreferenties.
+  - Voeg eigen PostgreSQL StatefulSet, 8Gi PVC en consistente Paperclip dump/files/keys-restore toe.
+  - Pin local-path-provisioner 0.0.37 en bind Talos UserVolumes aan de echte worker-datadisks met Retain.
+  - Complete componentgerichte CNPs vóór inschakelen CCNP; echte poorten en bestemmingen controleren.
+  - Argo Application-health en controller/CRD/webhook-readiness uitwerken; waves alleen zijn onvoldoende.
+  - Dispatcher/bridge met maximaal één actieve taak en gezamenlijk 2Gi codingbudget aantoonbaar afdwingen.
+  - Lokaal secrets-script en versleutelde externe herstelset voorbereiden; geen decryptiesleutel in Argo.
+  - Cilium zelfbeheer afstemmen op volledige render uit homelab-infra; geen gedeeltelijk overnemen.
+  - Gateway API, TLS en eventuele Issuer invullen met echte adressen en namen.
+  - Afzonderlijke live autorisatie, directe API-route, functionele tests en herstelproef op SMA-102.

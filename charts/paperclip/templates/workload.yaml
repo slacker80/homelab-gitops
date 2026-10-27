@@ -1,0 +1,119 @@
+{{- if .Values.enabled }}
+{{- if not .Values.runtimeVerified }}{{ fail "runtimeVerified vereist afzonderlijk bewijs; zie docs/voorbereiding.md" }}{{ end }}
+{{- $repo := required "image.repository ontbreekt" .Values.image.repository }}
+{{- $digest := required "image.digest ontbreekt" .Values.image.digest }}
+{{- if not (regexMatch "^sha256:[a-f0-9]{64}$" $digest) }}{{ fail "image.digest moet een SHA256-digest zijn" }}{{ end }}
+{{- $port := required "containerPort moet tegen de echte build gecontroleerd zijn" .Values.containerPort }}
+{{- $uid := required "runAsUser moet tegen de echte build gecontroleerd zijn" .Values.runAsUser }}
+{{- $gid := required "runAsGroup moet tegen de echte build gecontroleerd zijn" .Values.runAsGroup }}
+{{- $secret := required "existingSecret ontbreekt" .Values.existingSecret }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-data
+  annotations:
+    helm.sh/resource-policy: keep
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: {{ .Values.storage.storageClassName | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.size | quote }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: {{ $uid }}
+        runAsGroup: {{ $gid }}
+        fsGroup: {{ $gid }}
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: app
+          image: "{{ $repo }}@{{ $digest }}"
+          {{- with .Values.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ $secret }}
+          ports:
+            - name: app
+              containerPort: {{ $port }}
+          startupProbe:
+            tcpSocket: {port: app}
+            failureThreshold: 30
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket: {port: app}
+          livenessProbe:
+            tcpSocket: {port: app}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ required "storage.mountPath moet tegen de echte build gecontroleerd zijn" .Values.storage.mountPath | quote }}
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-data
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: app
+      port: {{ $port }}
+      targetPort: app
+{{- end }}

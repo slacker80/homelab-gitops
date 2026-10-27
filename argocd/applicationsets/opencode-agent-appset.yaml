@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: opencode-agent
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+  - missingkey=error
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+  - matrix:
+      generators:
+      - clusters:
+          selector:
+            matchLabels:
+              apps/opencode-agent: 'true'
+      - git:
+          repoURL: https://github.com/slacker80/homelab-gitops.git
+          revision: main
+          files:
+          - path: helm-values/versions.yaml
+  template:
+    metadata:
+      name: opencode-agent-{{ .nameNormalized }}
+    spec:
+      project: workloads
+      sources:
+      - repoURL: https://github.com/slacker80/homelab-gitops.git
+        targetRevision: main
+        path: charts/opencode-agent
+        helm:
+          releaseName: opencode-agent
+          valueFiles:
+          - $values/helm-values/opencode-agent/values.yaml
+          - $values/helm-values/opencode-agent/values-{{ .name }}.yaml
+          ignoreMissingValueFiles: false
+      - repoURL: https://github.com/slacker80/homelab-gitops.git
+        targetRevision: main
+        ref: values
+      - repoURL: https://github.com/slacker80/homelab-gitops.git
+        targetRevision: main
+        path: manifests/opencode-agent/{{ .name }}
+      destination:
+        server: '{{ .server }}'
+        namespace: agents-opencode
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - ServerSideApply=true

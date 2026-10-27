@@ -6,24 +6,24 @@ metadata:
 spec:
   goTemplate: true
   goTemplateOptions:
-    - missingkey=error
+  - missingkey=error
   generators:
-    - matrix:
-        generators:
-          - clusters:
-              selector:
-                matchLabels:
-                  platform/cert-manager: "true"
-          - git:
-              repoURL: https://github.com/slacker80/homelab-gitops.git
-              revision: main
-              files:
-                - path: helm-values/versions.yaml
+  - matrix:
+      generators:
+      - clusters:
+          selector:
+            matchLabels:
+              platform/cert-manager: 'true'
+      - git:
+          repoURL: https://github.com/slacker80/homelab-gitops.git
+          revision: main
+          files:
+          - path: helm-values/versions.yaml
   template:
     metadata:
-      name: "cert-manager-{{ .nameNormalized }}"
+      name: cert-manager-{{ .nameNormalized }}
       annotations:
-        argocd.argoproj.io/sync-wave: "1"
+        argocd.argoproj.io/sync-wave: '1'
       labels:
         app.kubernetes.io/part-of: platform
         app.kubernetes.io/name: cert-manager
@@ -31,49 +31,40 @@ spec:
     spec:
       project: platform
       sources:
-        - repoURL: https://charts.jetstack.io
-          chart: cert-manager
-          targetRevision: '{{ coalesce (index (index . "cert-manager") .name) (index (index . "cert-manager") "default") }}'
-          helm:
-            releaseName: cert-manager
-            ignoreMissingValueFiles: true
-            valueFiles:
-              - $values/helm-values/cert-manager/values.yaml
-              - $values/helm-values/cert-manager/values-{{ .name }}.yaml
-        - repoURL: https://github.com/slacker80/homelab-gitops.git
-          targetRevision: main
-          ref: values
+      - repoURL: https://charts.jetstack.io
+        chart: cert-manager
+        targetRevision: '{{ coalesce (index (index . "cert-manager") .name) (index (index . "cert-manager") "default") }}'
+        helm:
+          releaseName: cert-manager
+          ignoreMissingValueFiles: false
+          valueFiles:
+          - $values/helm-values/cert-manager/values.yaml
+          - $values/helm-values/cert-manager/values-{{ .name }}.yaml
+      - repoURL: https://github.com/slacker80/homelab-gitops.git
+        targetRevision: main
+        ref: values
       destination:
-        server: "{{ .server }}"
+        server: '{{ .server }}'
         namespace: cert-manager
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
-          - CreateNamespace=true
-          - ServerSideApply=true
-          # ignoreDifferences moet ook tijdens sync gerespecteerd worden;
-          # zonder deze optie overschrijft self-heal het caBundle en
-          # cainjector patcht direct terug → oneindige OutOfSync loop.
-          - RespectIgnoreDifferences=true
-          # `managedFieldsManagers` in ignoreDifferences vereist Server-Side
-          # Diff (Argo v2.10+). Zonder deze optie negeert Argo de rule stil
-          # en blijft de app OutOfSync.
-          - ServerSideDiff=true
-      # cert-manager-cainjector patcht caBundle in de webhook-configs. In de
-      # praktijk overschrijft die patch de SSA-managedFields metadata,
-      # waardoor `managedFieldsManagers: cert-manager-cainjector` niks
-      # ignoret (managedFields is leeg in de live resource). We negeren
-      # daarom expliciet de caBundle-fields via jqPathExpressions.
+        - CreateNamespace=true
+        - ServerSideApply=true
+        - RespectIgnoreDifferences=true
+        - ServerSideDiff=true
       ignoreDifferences:
-        - group: admissionregistration.k8s.io
-          kind: ValidatingWebhookConfiguration
-          name: cert-manager-webhook
-          jqPathExpressions:
-            - .webhooks[].clientConfig.caBundle
-        - group: admissionregistration.k8s.io
-          kind: MutatingWebhookConfiguration
-          name: cert-manager-webhook
-          jqPathExpressions:
-            - .webhooks[].clientConfig.caBundle
+      - group: admissionregistration.k8s.io
+        kind: ValidatingWebhookConfiguration
+        name: cert-manager-webhook
+        jqPathExpressions:
+        - .webhooks[].clientConfig.caBundle
+      - group: admissionregistration.k8s.io
+        kind: MutatingWebhookConfiguration
+        name: cert-manager-webhook
+        jqPathExpressions:
+        - .webhooks[].clientConfig.caBundle
+  syncPolicy:
+    preserveResourcesOnDeletion: true

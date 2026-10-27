@@ -6,24 +6,24 @@ metadata:
 spec:
   goTemplate: true
   goTemplateOptions:
-    - missingkey=error
+  - missingkey=error
   generators:
-    - matrix:
-        generators:
-          - clusters:
-              selector:
-                matchLabels:
-                  argocd-install: "true"
-          - git:
-              repoURL: https://github.com/slacker80/homelab-gitops.git
-              revision: main
-              files:
-                - path: helm-values/versions.yaml
+  - matrix:
+      generators:
+      - clusters:
+          selector:
+            matchLabels:
+              argocd-install: 'true'
+      - git:
+          repoURL: https://github.com/slacker80/homelab-gitops.git
+          revision: main
+          files:
+          - path: helm-values/versions.yaml
   template:
     metadata:
-      name: "argocd-{{ .nameNormalized }}"
+      name: argocd-{{ .nameNormalized }}
       annotations:
-        argocd.argoproj.io/sync-wave: "1"
+        argocd.argoproj.io/sync-wave: '1'
       labels:
         app.kubernetes.io/part-of: platform
         app.kubernetes.io/name: argocd
@@ -31,26 +31,28 @@ spec:
     spec:
       project: platform
       sources:
-        - repoURL: https://argoproj.github.io/argo-helm
-          chart: argo-cd
-          targetRevision: '{{ coalesce (index .argocd .name) (index .argocd "default") }}'
-          helm:
-            releaseName: argocd
-            ignoreMissingValueFiles: true
-            valueFiles:
-              - $values/helm-values/argocd/values.yaml
-              - $values/helm-values/argocd/values-{{ .name }}.yaml
-        - repoURL: https://github.com/slacker80/homelab-gitops.git
-          targetRevision: main
-          ref: values
+      - repoURL: https://argoproj.github.io/argo-helm
+        chart: argo-cd
+        targetRevision: '{{ coalesce (index .argocd .name) (index .argocd "default") }}'
+        helm:
+          releaseName: argocd
+          ignoreMissingValueFiles: false
+          valueFiles:
+          - $values/helm-values/argocd/values.yaml
+          - $values/helm-values/argocd/values-{{ .name }}.yaml
+      - repoURL: https://github.com/slacker80/homelab-gitops.git
+        targetRevision: main
+        ref: values
       destination:
-        server: "{{ .server }}"
+        server: '{{ .server }}'
         namespace: argocd
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
-          - CreateNamespace=false
-          - ServerSideApply=true
-          - Force=false
+        - CreateNamespace=false
+        - ServerSideApply=true
+        - Force=false
+  syncPolicy:
+    preserveResourcesOnDeletion: true
