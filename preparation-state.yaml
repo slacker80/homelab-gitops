@@ -13,5 +13,8 @@ blockers:
   - Application-health is geconfigureerd; controller/CRD/webhook-readiness en tweede sync nog live bewijzen; waves alleen zijn onvoldoende.
   - Dispatcher/bridge met maximaal één actieve taak en gezamenlijk 2Gi codingbudget aantoonbaar afdwingen.
   - Lokaal secrets-script en versleutelde externe herstelset voorbereiden; script maakt zo nodig de namespace zonder labels aan.
-  - Gateway API, TLS en eventuele Issuer invullen met echte adressen en namen.
   - Afzonderlijke live autorisatie, directe API-route, functionele tests en herstelproef op SMA-102.
+
+  - "SMA-156: bevestig admin.home.arpa-hostnamen, interne toegangsroute, CIDRs/auth en DNS; ClusterIP en admin-deny-all blijven tot besluit staan."
+  - "SMA-156: lever vier TLS-Secrets in envoy-gateway-system via gekozen cert-manager Issuer/externe PKI en argocd-server-ca ConfigMap in argocd; niets hiervan staat in Git."
+  - "SMA-156: bewijs CRD/controller-readiness vóór gateway-routes, policy Accepted, TLS en backendverificatie, Cilium-netwerktoestemming en positieve/negatieve toegangsproeven."

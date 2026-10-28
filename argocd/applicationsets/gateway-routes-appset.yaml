@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: gateway-routes
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+  - missingkey=error
+  generators:
+  - clusters:
+      selector:
+        matchLabels:
+          platform/envoy-gateway: 'true'
+          platform/gateway-routes: 'true'
+  template:
+    metadata:
+      name: gateway-routes-{{ .nameNormalized }}
+      annotations:
+        argocd.argoproj.io/sync-wave: '3'
+      labels:
+        app.kubernetes.io/part-of: platform
+        app.kubernetes.io/name: gateway-routes
+        app.kubernetes.io/managed-by: argocd
+    spec:
+      project: platform
+      source:
+        repoURL: https://github.com/slacker80/homelab-gitops.git
+        targetRevision: main
+        path: manifests/gateway/{{ .name }}
+      destination:
+        server: '{{ .server }}'
+        namespace: envoy-gateway-system
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+        syncOptions:
+        - ServerSideApply=true
+  syncPolicy:
+    preserveResourcesOnDeletion: true

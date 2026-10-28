@@ -15,6 +15,7 @@ metadata:
     platform/kyverno-policies: "false"
     platform/cert-manager: "false"
     platform/envoy-gateway: "false"
+    platform/gateway-routes: "false"
     apps/homeassistant: "false"
     apps/paperclip: "false"
     apps/hermes: "false"

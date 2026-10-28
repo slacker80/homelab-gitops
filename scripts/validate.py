@@ -74,6 +74,21 @@ def main():
         check("ServerSideApply=true" in spec["syncPolicy"]["syncOptions"], f"Geen SSA: {component}")
     check(load("helm-values/cert-manager/values.yaml")["crds"]["keep"], "cert-manager CRDs onbeschermd")
     check(load("helm-values/cilium/values.yaml")["hubble"]["tls"]["auto"]["method"] == "cronJob", "Hubble-render is willekeurig")
+    check(load("helm-values/cilium/values.yaml")["gatewayAPI"]["enabled"] is False,
+          "Envoy moet de enige Gateway API-controller zijn")
+    check(load("helm-values/envoy-gateway/values.yaml")["crds"]["enabled"] is True,
+          "Envoy-chart moet de Gateway API-CRDs beheren")
+    check(f"gateway-helm-{versions['envoy-gateway']['default']}.tgz" in checksums,
+          "Envoy-checksum ontbreekt")
+    route_app = load("argocd/applicationsets/gateway-routes-appset.yaml")
+    selector = route_app["spec"]["generators"][0]["clusters"]["selector"]["matchLabels"]
+    check(selector == {"platform/envoy-gateway": "true", "platform/gateway-routes": "true"},
+          "Gateway-routes vereisen een afzonderlijke selectiekeuze")
+    for name in ["envoy-gateway", "gateway-routes"]:
+        app = load(f"argocd/applicationsets/{name}-appset.yaml")
+        check(app["spec"]["syncPolicy"]["preserveResourcesOnDeletion"], "Gateway-cascade-delete")
+        check(app["spec"]["template"]["spec"]["syncPolicy"]["automated"]["prune"] is False,
+              "Gateway/CRD-prune moet afzonderlijk worden beoordeeld")
     workloads = load("argocd/projects/workloads.yaml")["spec"]
     for name in APPS:
         check(labels["apps/" + name] == "false", f"Clusterlabel actief: {name}")

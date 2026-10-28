@@ -22,7 +22,8 @@ externe clustercredentials. De labels schakelen de volgende componenten in:
 | `platform/kyverno=true` | Kyverno |
 | `platform/kyverno-policies=true` | Pod Security Standards en aanvullende policies |
 | `platform/cert-manager=true` | cert-manager |
-| `platform/envoy-gateway=true` | Envoy Gateway-controller |
+| `platform/envoy-gateway=true` | Envoy Gateway-controller en gebundelde CRDs |
+| `platform/gateway-routes=true` | Interne Gateway API-resources, vereist ook Envoy-label |
 | `apps/<app>=true` | Home Assistant, Paperclip, Hermes, Claude-, Codex- en OpenCode-worker |
 
 ## Indeling
@@ -53,10 +54,10 @@ Argo CD gebruikt de lokale adminlogin en serveert HTTPS via een ClusterIP-servic
 Voor lokale toegang kun je `kubectl -n argocd port-forward svc/argocd-server 8443:443`
 gebruiken. Repositorycredentials en wachtwoorden worden buiten deze repo beheerd.
 
-De Envoy Gateway-controller heeft nog geen Gateway, LoadBalancer-configuratie of
-HTTPRoute. cert-manager heeft nog geen Issuer. Kies en configureer deze
-onderdelen voor het homelab voordat je
-workloads erop aansluit; zie [TODO.md](TODO.md).
+Envoy Gateway en vier interne HTTPS-routes zijn voorbereid; zie
+[Gateway API](docs/gateway-api.md) voor hostnaamvoorstel, beheer, TLS,
+toegangsblokkade en herstel. ClusterIP en deny-all voorkomen publicatie.
+cert-manager heeft nog geen gekozen Issuer; alle installatielabels blijven uit.
 
 De bestaande replica-aantallen, resourcebudgetten en policies zijn behouden.
 Controleer of ze bij de capaciteit van je homelab passen. Workloadpolicies
@@ -75,6 +76,7 @@ kubectl kustomize manifests/kyverno-policies/talos
 kyverno test tests/kyverno/add-default-security-context
 python3 scripts/validate.py
 bash scripts/render-platform.sh  # Argo CD, cert-manager en Cilium: checksum, lint, stabiele render
+bash scripts/render-gateway.sh # Envoy, CRD-schema en service-/routecontracten
 scripts/render-apps.sh      # app-charts, met checksumcontrole
 scripts/render-kyverno.sh   # Kyverno-charts, met checksumcontrole
 ```

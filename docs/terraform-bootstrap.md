@@ -108,3 +108,11 @@ de externe herstelset. De Pi met Hermes en Paperclip is niet benaderd of gewijzi
 Bronnen: [Application-health](https://argo-cd.readthedocs.io/en/stable/operator-manual/health/),
 [Terraform removed](https://developer.hashicorp.com/terraform/language/block/removed),
 [cert-manager Helm](https://cert-manager.io/docs/installation/helm/).
+
+## Gateway-aanvulling SMA-156
+
+Envoy, gebundelde Gateway API/Envoy-CRDs en routes zijn uitsluitend eigendom
+van Argo. Voeg hiervoor geen Terraform-release of tweede CRD-beheerder toe.
+Cilium Gateway API blijft uit. Volg na de bovenstaande handover de afzonderlijke
+readiness- en toegangsstappen in [gateway-api.md](gateway-api.md); de twee
+Gateway-labels blijven in deze voorbereiding false.

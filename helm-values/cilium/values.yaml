@@ -13,6 +13,10 @@ cgroup:
   hostRoot: /sys/fs/cgroup
 hubble:
   enabled: true
+  ui:
+    enabled: true
+    ingress:
+      enabled: false
   relay:
     enabled: true
   # Certificaten via de certgen-job i.p.v. Helm: de methode `helm` maakt bij
@@ -24,3 +28,9 @@ l2announcements:
   enabled: true
 operator:
   replicas: 1
+
+# Envoy is de enige Gateway API-controller.
+gatewayAPI:
+  enabled: false
+ingressController:
+  enabled: false
