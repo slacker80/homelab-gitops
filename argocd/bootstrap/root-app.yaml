@@ -3,7 +3,7 @@ kind: Application
 metadata:
   name: root
   namespace: argocd
-  # Cascade delete: remove all child apps when the root app is deleted.
+  # Geen cascade-finalizer: verwijderen van root mag children niet verwijderen.
 spec:
   project: platform
   source:

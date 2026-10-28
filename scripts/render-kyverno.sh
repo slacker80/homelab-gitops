@@ -15,5 +15,5 @@ for component in kyverno kyverno-policies; do
   "$helm_bin" template "$component" "$render_tmp/$component-3.9.2.tgz" \
     --namespace kyverno --kube-version 1.36.5 \
     -f "$repo_root/helm-values/$component/values.yaml" \
-    -f "$repo_root/helm-values/$component/values-management.yaml"
+    -f "$repo_root/helm-values/$component/values-talos.yaml"
 done

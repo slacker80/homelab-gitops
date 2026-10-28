@@ -42,7 +42,7 @@ def main():
             if isinstance(patch, dict) and "path" in patch:
                 check((path.parent / patch["path"]).is_file(), f"Ontbrekende patch: {path}")
     state = load("preparation-state.yaml")
-    cluster = load("argocd/cluster-secrets/management-cluster.yaml")
+    cluster = load("argocd/cluster-secrets/talos-cluster.yaml")
     labels = cluster["metadata"]["labels"]
     check(all(v == "false" for k, v in labels.items()
               if k.startswith(("apps/", "platform/")) or k in ("argocd-install", "cilium-install")),
@@ -51,6 +51,29 @@ def main():
     check(all(versions[n]["default"] == "3.9.2" for n in ["kyverno", "kyverno-policies"]),
           "Kyverno-versie wijkt af van gecontroleerde chart-lock/render-script")
     checksums = (ROOT / "helm-values/chart-checksums.sha256").read_text()
+    check(cluster["metadata"]["name"] == "talos-cluster" and cluster["stringData"]["name"] == "talos",
+          "Er is precies één logische Talos-clusterregistratie")
+    check(cluster["stringData"]["server"] == "https://kubernetes.default.svc", "Onverwachte clusterbestemming")
+    check("project" not in cluster["stringData"], "Cluster moet ook voor project workloads beschikbaar zijn")
+    check(len(list((ROOT / "argocd/cluster-secrets").glob("*.yaml"))) == 1, "Tweede clusterregistratie")
+    for appset in (ROOT / "argocd/applicationsets").glob("*.yaml"):
+        template = yaml.safe_load(appset.read_text())["spec"]["template"]["spec"]
+        for source in template.get("sources", [template.get("source", {})]):
+            if "chart" in source:
+                for ref in source["helm"]["valueFiles"]:
+                    local = ref.replace("$values/", "").replace("{{ .name }}", "talos")
+                    check((ROOT / local).is_file(), f"Ontbrekende values: {local}")
+            if "path" in source:
+                check((ROOT / source["path"].replace("{{ .name }}", "talos")).is_dir(),
+                      f"Ontbrekende overlay: {source['path']}")
+    for component, chartname in [("argocd", "argo-cd"), ("cilium", "cilium"), ("cert-manager", "cert-manager")]:
+        check(f"{chartname}-{versions[component]['default']}.tgz" in checksums, f"Checksum ontbreekt: {component}")
+        spec = load(f"argocd/applicationsets/{component}-appset.yaml")["spec"]["template"]["spec"]
+        chart = next(s for s in spec["sources"] if "chart" in s)
+        check(chart["helm"]["releaseName"] == component, f"Bootstrap-release wijkt af: {component}")
+        check("ServerSideApply=true" in spec["syncPolicy"]["syncOptions"], f"Geen SSA: {component}")
+    check(load("helm-values/cert-manager/values.yaml")["crds"]["keep"], "cert-manager CRDs onbeschermd")
+    check(load("helm-values/cilium/values.yaml")["hubble"]["tls"]["auto"]["method"] == "cronJob", "Hubble-render is willekeurig")
     workloads = load("argocd/projects/workloads.yaml")["spec"]
     for name in APPS:
         check(labels["apps/" + name] == "false", f"Clusterlabel actief: {name}")

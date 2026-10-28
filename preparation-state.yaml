@@ -1,6 +1,6 @@
 ready: false
 blockers:
-  - Overdracht na Terraform-bootstrap (SMA-150) in homelab-infra afronden; daarna pas argocd-install/cilium-install aanzetten.
+  - Overdracht na Terraform-bootstrap (SMA-150) in homelab-infra afronden; daarna pas argocd-install/cilium-install/platform/cert-manager aanzetten.
   - Root, repositorytoegang en AppProject platform bij bootstrap; root valt buiten zijn eigen child-set.
   - Pin alle images op tag@digest (validate.py --release weigert anders); vul worker-images, commando's, UID/GID, probes en secretnamen in; vervang alle TODO-waarden.
   - Hermes (app-template, SMA-153) - image gelijk aan de Pi-build, lokaal aangemaakte secretnaam en migratie van config.yaml naar /opt/data bevestigen; UID 10000 tegen de gepinde build controleren.
@@ -10,7 +10,7 @@ blockers:
   - Paperclip-datadir, poort/health, PostgreSQL-versie en consistente dump/files/keys-restore bevestigen.
   - Pin local-path-provisioner 0.0.37 met namespace local-path-storage (PSA privileged via managedNamespaceMetadata) en Talos UserVolumes met Retain.
   - Complete componentgerichte CNPs vóór inschakelen CCNP; echte poorten en bestemmingen controleren.
-  - Argo Application-health en controller/CRD/webhook-readiness uitwerken; waves alleen zijn onvoldoende.
+  - Application-health is geconfigureerd; controller/CRD/webhook-readiness en tweede sync nog live bewijzen; waves alleen zijn onvoldoende.
   - Dispatcher/bridge met maximaal één actieve taak en gezamenlijk 2Gi codingbudget aantoonbaar afdwingen.
   - Lokaal secrets-script en versleutelde externe herstelset voorbereiden; script maakt zo nodig de namespace zonder labels aan.
   - Gateway API, TLS en eventuele Issuer invullen met echte adressen en namen.

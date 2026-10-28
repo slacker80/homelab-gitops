@@ -29,7 +29,7 @@ done
 for entry in "${apps[@]}"; do
   read -r app chart _ namespace <<<"$entry"
   ver=$(version "$app")
-  args=(-f "$repo_root/helm-values/$app/values.yaml" -f "$repo_root/helm-values/$app/values-management.yaml")
+  args=(-f "$repo_root/helm-values/$app/values.yaml" -f "$repo_root/helm-values/$app/values-talos.yaml")
   # Gelijk aan skipTests in de homeassistant-ApplicationSet.
   [[ "$app" == homeassistant ]] && args+=(--skip-tests)
   echo "---"
