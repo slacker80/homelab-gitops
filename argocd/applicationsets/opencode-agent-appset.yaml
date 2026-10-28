@@ -1,0 +1,64 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: opencode-agent
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  apps/opencode-agent: 'true'
+          - git:
+              repoURL: https://github.com/slacker80/homelab-gitops.git
+              revision: main
+              files:
+                - path: helm-values/versions.yaml
+  template:
+    metadata:
+      name: opencode-agent-{{ .nameNormalized }}
+    spec:
+      project: workloads
+      sources:
+        # Generieke bjw-s app-template; geen officiële OpenCode-chart gebruikt.
+        - repoURL: https://bjw-s-labs.github.io/helm-charts
+          chart: app-template
+          targetRevision: '{{ coalesce (index (index . "opencode-agent") .name) (index (index . "opencode-agent") "default") }}'
+          helm:
+            releaseName: opencode-agent
+            valueFiles:
+              - $values/helm-values/opencode-agent/values.yaml
+              - $values/helm-values/opencode-agent/values-{{ .name }}.yaml
+            ignoreMissingValueFiles: false
+        - repoURL: https://github.com/slacker80/homelab-gitops.git
+          targetRevision: main
+          ref: values
+        # Extra manifests, waaronder de PVC('s) met Prune=false,Delete=false.
+        - repoURL: https://github.com/slacker80/homelab-gitops.git
+          targetRevision: main
+          path: manifests/opencode-agent/{{ .name }}
+      destination:
+        server: '{{ .server }}'
+        namespace: agents-opencode
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        # Argo maakt de namespace met PSA-labels aan. Zo'n namespace wordt
+        # normaal niet door de Application gevolgd en dus niet verwijderd.
+        managedNamespaceMetadata:
+          labels:
+            pod-security.kubernetes.io/enforce: restricted
+            pod-security.kubernetes.io/enforce-version: v1.36
+            pod-security.kubernetes.io/audit: restricted
+            pod-security.kubernetes.io/warn: restricted
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

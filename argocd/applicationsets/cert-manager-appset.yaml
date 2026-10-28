@@ -36,7 +36,7 @@ spec:
           targetRevision: '{{ coalesce (index (index . "cert-manager") .name) (index (index . "cert-manager") "default") }}'
           helm:
             releaseName: cert-manager
-            ignoreMissingValueFiles: true
+            ignoreMissingValueFiles: false
             valueFiles:
               - $values/helm-values/cert-manager/values.yaml
               - $values/helm-values/cert-manager/values-{{ .name }}.yaml
@@ -48,7 +48,7 @@ spec:
         namespace: cert-manager
       syncPolicy:
         automated:
-          prune: true
+          prune: false
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
@@ -77,3 +77,5 @@ spec:
           name: cert-manager-webhook
           jqPathExpressions:
             - .webhooks[].clientConfig.caBundle
+  syncPolicy:
+    preserveResourcesOnDeletion: true

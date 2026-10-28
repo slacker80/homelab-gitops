@@ -36,7 +36,8 @@ spec:
           targetRevision: '{{ index (index . "envoy-gateway") "default" }}'
           helm:
             releaseName: envoy-gateway
-            ignoreMissingValueFiles: true
+            skipCrds: false
+            ignoreMissingValueFiles: false
             valueFiles:
               - $values/helm-values/envoy-gateway/values.yaml
               - $values/helm-values/envoy-gateway/values-{{ .name }}.yaml
@@ -48,8 +49,10 @@ spec:
         namespace: envoy-gateway-system
       syncPolicy:
         automated:
-          prune: true
+          prune: false # Behoud CRDs bij fouten of verwijdering; opschonen is apart werk.
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
           - ServerSideApply=true
+  syncPolicy:
+    preserveResourcesOnDeletion: true

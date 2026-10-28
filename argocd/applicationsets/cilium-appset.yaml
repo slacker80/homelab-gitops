@@ -1,0 +1,63 @@
+# Cilium zelf. Terraform (homelab-infra) installeert Cilium eenmalig met dezelfde
+# chartversie en values; daarna neemt deze ApplicationSet het beheer over
+# (besluit SMA-150). Zet het label pas aan wanneer Terraform de release uit zijn
+# state heeft gehaald; twee beheerders tegelijk is niet toegestaan.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cilium
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  cilium-install: "true"
+          - git:
+              repoURL: https://github.com/slacker80/homelab-gitops.git
+              revision: main
+              files:
+                - path: helm-values/versions.yaml
+  template:
+    metadata:
+      name: "cilium-{{ .nameNormalized }}"
+      annotations:
+        argocd.argoproj.io/sync-wave: "0"
+      labels:
+        app.kubernetes.io/part-of: platform
+        app.kubernetes.io/name: cilium
+        app.kubernetes.io/managed-by: argocd
+    spec:
+      project: platform
+      sources:
+        - repoURL: https://helm.cilium.io
+          chart: cilium
+          targetRevision: '{{ coalesce (index .cilium .name) (index .cilium "default") }}'
+          helm:
+            # Gelijk aan de Terraform-release, zodat Argo dezelfde objecten overneemt.
+            releaseName: cilium
+            ignoreMissingValueFiles: false
+            valueFiles:
+              - $values/helm-values/cilium/values.yaml
+              - $values/helm-values/cilium/values-{{ .name }}.yaml
+        - repoURL: https://github.com/slacker80/homelab-gitops.git
+          targetRevision: main
+          ref: values
+      destination:
+        server: "{{ .server }}"
+        namespace: kube-system
+      syncPolicy:
+        automated:
+          # Geen prune voor de CNI: een verkeerde render mag geen netwerk weghalen.
+          prune: false
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false
+          - ServerSideApply=true
+  syncPolicy:
+    preserveResourcesOnDeletion: true

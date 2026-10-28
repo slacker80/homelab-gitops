@@ -15,17 +15,31 @@ spec:
     - https://github.com/slacker80/homelab-gitops.git
   destinations:
     - namespace: argocd
-      server: "*"
+      server: https://kubernetes.default.svc
     - namespace: kube-system
-      server: "*"
+      server: https://kubernetes.default.svc
     - namespace: cilium-secrets
-      server: "*"
+      server: https://kubernetes.default.svc
     - namespace: kyverno
-      server: "*"
+      server: https://kubernetes.default.svc
     - namespace: cert-manager
-      server: "*"
+      server: https://kubernetes.default.svc
     - namespace: envoy-gateway-system
-      server: "*"
+      server: https://kubernetes.default.svc
+    - namespace: apps-homeassistant
+      server: https://kubernetes.default.svc
+    - namespace: apps-paperclip
+      server: https://kubernetes.default.svc
+    - namespace: apps-hermes
+      server: https://kubernetes.default.svc
+    - namespace: agents-claude
+      server: https://kubernetes.default.svc
+    - namespace: agents-codex
+      server: https://kubernetes.default.svc
+    - namespace: agents-opencode
+      server: https://kubernetes.default.svc
+    - namespace: local-path-storage
+      server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"

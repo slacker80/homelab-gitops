@@ -36,7 +36,7 @@ spec:
           targetRevision: '{{ coalesce (index .argocd .name) (index .argocd "default") }}'
           helm:
             releaseName: argocd
-            ignoreMissingValueFiles: true
+            ignoreMissingValueFiles: false
             valueFiles:
               - $values/helm-values/argocd/values.yaml
               - $values/helm-values/argocd/values-{{ .name }}.yaml
@@ -54,3 +54,5 @@ spec:
           - CreateNamespace=false
           - ServerSideApply=true
           - Force=false
+  syncPolicy:
+    preserveResourcesOnDeletion: true

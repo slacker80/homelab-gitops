@@ -258,9 +258,8 @@ webhooks:
   timeoutSeconds: 10
 
   # Webhook failure policy
-  # Use "Fail" for production to ensure policies are enforced
-  # Use "Ignore" only if availability is more critical than policy enforcement
-  failurePolicy: Fail
+  # Projectafspraak (admission-policy): Ignore zolang alle policies Audit zijn.
+  failurePolicy: Ignore
 
   # TLS configuration for secure webhook communication
   # The Helm chart will generate certificates if not provided
@@ -269,6 +268,10 @@ webhooks:
 # Enable PolicyExceptions so specific namespaces can be
 # exempted from policies.
 features:
+  # Projectafspraak (admission-policy): dwing Ignore af voor alle webhooks
+  # zolang alle policies Audit zijn.
+  forceFailurePolicyIgnore:
+    enabled: true
   # Geen report-creatie per admission request: bij sync-stormen drukt dat de
   # admission-handlers voorbij de webhook-timeout. PolicyReports blijven
   # bestaan via de background scans van de reports/background controllers.

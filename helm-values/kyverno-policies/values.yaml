@@ -10,9 +10,10 @@ policyType: ValidatingPolicy
 # Options: baseline | restricted
 podSecurityStandard: restricted
 
-# Enforce = block non-compliant resources.
-# Override to Audit per cluster via values-{cluster}.yaml.
-validationFailureAction: Enforce
+# Projectafspraak (admission-policy): eerst Audit, met failurePolicy Ignore
+# zolang alle policies Audit zijn. Enforce pas na een aparte compatibiliteitsproef.
+validationFailureAction: Audit
+failurePolicy: Ignore
 
 # Background scans of existing resources.
 background: true
@@ -20,6 +21,11 @@ background: true
 # Skip background-controller admission requests (performance).
 # Explicitly set so ArgoCD autodetect does not drift from the live state.
 skipBackgroundRequests: true
-# Namespace exclusions are managed centrally in
-# manifests/kyverno-policies/base/exceptions.yaml (PolicyException).
-# Do not add exclude rules here to avoid duplication.
+# Namespace-uitzonderingen volgens admission-policy via vpolExclude; de eigen
+# PolicyExceptions in manifests/kyverno-policies/base zijn niet actief.
+vpolExclude:
+  excludeNamespaces:
+    - kube-system
+    - kyverno
+    - argocd
+    - local-path-storage

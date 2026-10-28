@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: workloads
+  namespace: argocd
+spec:
+  sourceRepos:
+    - https://github.com/slacker80/homelab-gitops.git
+    - https://pajikos.github.io/home-assistant-helm-chart
+    - https://bjw-s-labs.github.io/helm-charts
+  destinations:
+    - namespace: apps-homeassistant
+      server: https://kubernetes.default.svc
+    - namespace: apps-paperclip
+      server: https://kubernetes.default.svc
+    - namespace: apps-hermes
+      server: https://kubernetes.default.svc
+    - namespace: agents-claude
+      server: https://kubernetes.default.svc
+    - namespace: agents-codex
+      server: https://kubernetes.default.svc
+    - namespace: agents-opencode
+      server: https://kubernetes.default.svc
+  # Alleen Namespace, nodig voor CreateNamespace=true in de ApplicationSets.
+  # Let op: dit laat ook een Namespace-object uit een chart toe; controleer
+  # de render bij elke chartupdate.
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: ''
+      kind: ServiceAccount
+    - group: ''
+      kind: Service
+    - group: ''
+      kind: PersistentVolumeClaim
+    - group: ''
+      kind: ConfigMap
+    - group: apps
+      kind: Deployment
+    - group: apps
+      kind: StatefulSet
+  namespaceResourceBlacklist:
+    - group: ''
+      kind: Secret
+    - group: cilium.io
+      kind: CiliumNetworkPolicy

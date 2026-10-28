@@ -1,0 +1,43 @@
+# Community-chart pajikos/home-assistant-helm-chart (versie in versions.yaml).
+# Uitrol blijft uit via clusterlabel apps/homeassistant=false. Open vóór aanzetten:
+# image-digest, integraties (mDNS/SSDP/USB/Zigbee), LAN-poorten en eventuele
+# aparte hardware-uitzondering. Het upstream-image start als root (s6-overlay);
+# draaien als 568 onder PSA restricted is best effort en nog niet getest (SMA-152).
+image:
+  repository: ghcr.io/home-assistant/home-assistant
+  # Leeg = appVersion van de chart. Vóór aanzetten vastzetten op tag@digest.
+  tag: ""
+controller:
+  type: Deployment
+deploymentStrategy: Recreate
+replicaCount: 1
+hostNetwork: false
+persistence:
+  enabled: true
+  # PVC uit manifests/homeassistant/base met Prune=false,Delete=false.
+  existingClaim: homeassistant-config
+# ServiceAccount zonder token uit manifests/homeassistant/base; de chart kent
+# geen automount-optie.
+serviceAccount:
+  create: false
+  name: homeassistant
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 568
+  runAsGroup: 568
+  fsGroup: 568
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 2Gi
+nodeSelector: {}

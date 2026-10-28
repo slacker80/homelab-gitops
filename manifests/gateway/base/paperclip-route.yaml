@@ -1,0 +1,24 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: paperclip-ui
+  namespace: apps-paperclip
+spec:
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: admin
+    namespace: envoy-gateway-system
+    sectionName: paperclip
+  hostnames:
+  - paperclip.admin.home.arpa
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - group: ''
+      kind: Service
+      name: paperclip-server
+      port: 3100

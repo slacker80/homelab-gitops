@@ -1,0 +1,84 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: admin
+  namespace: envoy-gateway-system
+spec:
+  gatewayClassName: envoy-internal
+  listeners:
+  - name: argocd
+    hostname: argocd.admin.home.arpa
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - group: ''
+        kind: Secret
+        name: argocd-admin-tls
+    allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: argocd
+      kinds:
+      - group: gateway.networking.k8s.io
+        kind: HTTPRoute
+  - name: homeassistant
+    hostname: homeassistant.admin.home.arpa
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - group: ''
+        kind: Secret
+        name: homeassistant-admin-tls
+    allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: apps-homeassistant
+      kinds:
+      - group: gateway.networking.k8s.io
+        kind: HTTPRoute
+  - name: paperclip
+    hostname: paperclip.admin.home.arpa
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - group: ''
+        kind: Secret
+        name: paperclip-admin-tls
+    allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: apps-paperclip
+      kinds:
+      - group: gateway.networking.k8s.io
+        kind: HTTPRoute
+  - name: hubble
+    hostname: hubble.admin.home.arpa
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - group: ''
+        kind: Secret
+        name: hubble-admin-tls
+    allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+      kinds:
+      - group: gateway.networking.k8s.io
+        kind: HTTPRoute

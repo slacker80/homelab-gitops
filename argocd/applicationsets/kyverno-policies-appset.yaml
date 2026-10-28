@@ -36,20 +36,17 @@ spec:
           targetRevision: '{{ coalesce (index (index . "kyverno-policies") .name) (index (index . "kyverno-policies") "default") }}'
           helm:
             releaseName: kyverno-policies
-            ignoreMissingValueFiles: true
+            ignoreMissingValueFiles: false
             valueFiles:
               - $values/helm-values/kyverno-policies/values.yaml
               - $values/helm-values/kyverno-policies/values-{{ .name }}.yaml
             parameters:
               - name: clusterName
-                value: "{{ .name }}"
+                value: '{{ .name }}'
         - repoURL: https://github.com/slacker80/homelab-gitops.git
           targetRevision: main
           ref: values
         # Platform CEL-policies en PolicyExceptions (per-cluster overlay)
-        - repoURL: https://github.com/slacker80/homelab-gitops.git
-          targetRevision: main
-          path: manifests/kyverno-policies/{{ .name }}
       destination:
         server: "{{ .server }}"
         namespace: kyverno
@@ -61,3 +58,5 @@ spec:
           - CreateNamespace=true
           - ServerSideApply=true
           - RespectIgnoreDifferences=true
+  syncPolicy:
+    preserveResourcesOnDeletion: true

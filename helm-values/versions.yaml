@@ -1,4 +1,5 @@
-# Centrale chartversies; alle clusters gebruiken de default tenzij expliciet overschreven.
+# Centrale chartversies; één Talos-cluster gebruikt de default tenzij expliciet overschreven.
+# Werk bij een versiewijziging ook helm-values/chart-checksums.sha256 bij.
 
 argocd:
   # renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
@@ -6,11 +7,11 @@ argocd:
 
 kyverno:
   # renovate: datasource=helm depName=kyverno registryUrl=https://kyverno.github.io/kyverno
-  default: "3.8.2"
+  default: "3.9.2"
 
 kyverno-policies:
   # renovate: datasource=helm depName=kyverno-policies registryUrl=https://kyverno.github.io/kyverno
-  default: "3.8.2"
+  default: "3.9.2"
 
 cert-manager:
   # renovate: datasource=helm depName=cert-manager registryUrl=https://charts.jetstack.io
@@ -19,3 +20,33 @@ cert-manager:
 envoy-gateway:
   # renovate: datasource=docker depName=docker.io/envoyproxy/gateway-helm versioning=semver-coerced
   default: "1.8.3"
+
+cilium:
+  # renovate: datasource=helm depName=cilium registryUrl=https://helm.cilium.io
+  default: "1.20.4"
+
+# Community-chart (pajikos); geen officiële Home Assistant-chart.
+homeassistant:
+  # renovate: datasource=helm depName=home-assistant registryUrl=https://pajikos.github.io/home-assistant-helm-chart
+  default: "0.3.89"
+
+# Generieke bjw-s app-template voor apps zonder bruikbare upstream-chart.
+hermes:
+  # renovate: datasource=helm depName=app-template registryUrl=https://bjw-s-labs.github.io/helm-charts
+  default: "5.3.0"
+
+paperclip:
+  # renovate: datasource=helm depName=app-template registryUrl=https://bjw-s-labs.github.io/helm-charts
+  default: "5.3.0"
+
+claude-agent:
+  # renovate: datasource=helm depName=app-template registryUrl=https://bjw-s-labs.github.io/helm-charts
+  default: "5.3.0"
+
+codex-agent:
+  # renovate: datasource=helm depName=app-template registryUrl=https://bjw-s-labs.github.io/helm-charts
+  default: "5.3.0"
+
+opencode-agent:
+  # renovate: datasource=helm depName=app-template registryUrl=https://bjw-s-labs.github.io/helm-charts
+  default: "5.3.0"

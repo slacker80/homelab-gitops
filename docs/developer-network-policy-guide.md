@@ -1,3 +1,7 @@
+> Deze oorspronkelijke PR-1-handleiding is nog niet bijgewerkt. Voor de huidige
+> voorbereiding geldt [voorbereiding.md](voorbereiding.md); oude eigen Kyverno-regels
+> zijn niet actief.
+
 # Netwerkpolicies
 
 De Cilium-baseline blokkeert ingress en egress voor workloadnamespaces en staat

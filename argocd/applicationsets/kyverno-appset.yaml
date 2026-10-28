@@ -36,7 +36,7 @@ spec:
           targetRevision: '{{ coalesce (index .kyverno .name) (index .kyverno "default") }}'
           helm:
             releaseName: kyverno
-            ignoreMissingValueFiles: true
+            ignoreMissingValueFiles: false
             valueFiles:
               - $values/helm-values/kyverno/values.yaml
               - $values/helm-values/kyverno/values-{{ .name }}.yaml
@@ -70,3 +70,5 @@ spec:
           - ServerSideApply=true
           - Force=false
           - RespectIgnoreDifferences=true
+  syncPolicy:
+    preserveResourcesOnDeletion: true

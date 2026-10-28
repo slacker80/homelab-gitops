@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- proxy.yaml
+- class.yaml
+- argocd-route.yaml
+- homeassistant-route.yaml
+- paperclip-route.yaml
+- hubble-route.yaml
+- gateway.yaml
+- deny.yaml
+- argocd-backend-tls.yaml
