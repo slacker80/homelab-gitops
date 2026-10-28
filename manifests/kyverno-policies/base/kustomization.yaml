@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - exceptions.yaml
+  - require-resource-limits.yaml
+  - add-default-security-context.yaml
+  - disallow-latest-tag.yaml
+  - generate-pdb.yaml
+  - require-explicit-serviceaccount.yaml
+  - enforce-probes.yaml
+  - disallow-cluster-admin-binding.yaml
+  - require-minimum-replicas.yaml
+  - require-zone-spread.yaml
+  - generate-service-account.yaml
+  - disallow-secrets-in-env.yaml
+  - disallow-automount-sa-token.yaml
+  - generate-default-deny-networkpolicy.yaml
+  - restrict-wildcard-rbac.yaml
+  - disallow-nodeport.yaml

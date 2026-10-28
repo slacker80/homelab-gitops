@@ -1,0 +1,115 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices"
+  ],
+  "enabledManagers": [
+    "custom.regex"
+  ],
+  "timezone": "Europe/Amsterdam",
+  "dependencyDashboard": true,
+  "prConcurrentLimit": 4,
+  "prHourlyLimit": 2,
+  "separateMajorMinor": true,
+  "separateMultipleMajor": true,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^helm-values\\/versions\\.yaml$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-zA-Z0-9._-]+) depName=(?<depName>[^\\s]+)(?: packageName=(?<packageName>[^\\s]+))?(?: registryUrl=(?<registryUrl>[^\\s]+))?(?: versioning=(?<versioning>[^\\s]+))?\\n\\s+[a-zA-Z0-9_-]+:\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "depTypeTemplate": "helm-chart",
+      "datasourceTemplate": "{{{datasource}}}",
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}helm{{/if}}"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^argocd\\/applicationsets\\/.+\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "repoURL:\\s*(?<registryUrl>https?://[^\\s]+)\\s*\\n\\s*chart:\\s*(?<depName>[^\\s]+)\\s*\\n\\s*targetRevision:\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "depTypeTemplate": "helm-chart",
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Treat all detected chart bumps as GitOps Helm upgrades.",
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDatasources": [
+        "helm",
+        "docker"
+      ],
+      "addLabels": [
+        "dependencies",
+        "helm",
+        "gitops"
+      ],
+      "commitMessageTopic": "Helm chart {{depName}}",
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "helm",
+      "automerge": false
+    },
+    {
+      "description": "Skip pin PRs for our custom regex managers \u2014 every chart in helm-values/versions.yaml and argocd/applicationsets/ is already pinned to an exact version. The pinDependencies preset (via config:best-practices) tries to open no-op PRs that error out with 'update failure' because the branch has no changes to commit.",
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchUpdateTypes": [
+        "pin",
+        "pinDigest"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Major chart upgrades require migration review before PR creation.",
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDatasources": [
+        "helm",
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "dependencyDashboardApproval": true,
+      "addLabels": [
+        "major-upgrade",
+        "migration-review"
+      ]
+    },
+    {
+      "description": "Critical platform charts need explicit approval, even for minor and patch upgrades.",
+      "matchPackageNames": [
+        "argo-cd",
+        "cert-manager",
+        "kyverno",
+        "kyverno-policies"
+      ],
+      "dependencyDashboardApproval": true,
+      "addLabels": [
+        "platform-critical",
+        "migration-review"
+      ]
+    }
+  ],
+  "prBodyColumns": [
+    "Package",
+    "Update",
+    "Change",
+    "Package file",
+    "References"
+  ],
+  "prBodyNotes": [
+    "Review upstream release notes and validate chart values, CRDs and rendered manifests before merging."
+  ]
+}

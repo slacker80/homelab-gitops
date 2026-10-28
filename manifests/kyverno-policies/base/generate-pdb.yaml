@@ -1,0 +1,45 @@
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: generate-pdb
+  annotations:
+    policies.kyverno.io/title: "Auto-generate PodDisruptionBudget"
+    policies.kyverno.io/category: Reliability
+    policies.kyverno.io/severity: medium
+spec:
+  evaluation:
+    synchronize:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [apps]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [deployments, statefulsets]
+  # Envoy Gateway owns a PDB in envoy-gateway-system; two PDBs block eviction and node drains.
+  # Workloads with their own PDB can opt out with homelab.local/skip-pdb: "true".
+  matchConditions:
+    - name: eligible-workload
+      expression: >-
+        !['argocd', 'cert-manager', 'envoy-gateway-system', 'karpenter', 'kube-system', 'kyverno'].exists(n,
+          object.metadata.namespace == n) &&
+        object.spec.?replicas.orValue(1) >= 2
+    - name: pdb-opt-out
+      expression: >-
+        !(has(object.metadata.annotations) &&
+          'homelab.local/skip-pdb' in object.metadata.annotations &&
+          object.metadata.annotations['homelab.local/skip-pdb'] == 'true')
+  variables:
+    - name: downstream
+      expression: >-
+        [{
+          "apiVersion": dyn("policy/v1"),
+          "kind": dyn("PodDisruptionBudget"),
+          "metadata": dyn({"name": object.metadata.name + "-pdb"}),
+          "spec": dyn({
+            "maxUnavailable": dyn(1),
+            "selector": dyn({"matchLabels": object.spec.selector.matchLabels})
+          })
+        }]
+  generate:
+    - expression: generator.Apply(object.metadata.namespace, variables.downstream)

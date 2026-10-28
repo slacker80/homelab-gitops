@@ -1,0 +1,44 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: require-minimum-replicas
+  annotations:
+    policies.kyverno.io/title: "Minimum 2 replicas vereist"
+    policies.kyverno.io/category: Availability
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Deployment, StatefulSet
+spec:
+  validationActions: [Deny]
+  evaluation:
+    background:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [apps]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [deployments, statefulsets]
+  matchConditions:
+    - name: exclude-platform-namespaces
+      expression: >-
+        !['kube-system', 'kyverno', 'argocd', 'karpenter',
+          'cert-manager'].exists(n,
+          object.metadata.namespace == n)
+  variables:
+    # Een workload met een HPA laat spec.replicas bewust weg: zou het veld er wel
+    # staan, dan vechten Argo CD self-heal en de HPA om hetzelfde veld. De
+    # ondergrens ligt dan bij de HPA, dus die zoeken we op in dezelfde namespace.
+    - name: hpaMinReplicas
+      expression: >-
+        dyn(resource.List("autoscaling/v2", "horizontalpodautoscalers",
+                          object.metadata.namespace).items)
+          .filter(h, h.spec.scaleTargetRef.kind == object.kind &&
+                     h.spec.scaleTargetRef.name == object.metadata.name)
+          .map(h, h.spec.?minReplicas.orValue(1))
+  validations:
+    - expression: >-
+        (has(object.spec.replicas) && object.spec.replicas >= 2) ||
+        variables.hpaMinReplicas.exists(m, m >= 2)
+      messageExpression: >-
+        object.kind + ' ' + object.metadata.name +
+        ' moet minimaal 2 replicas hebben, of een HPA met minReplicas >= 2.'

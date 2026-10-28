@@ -1,0 +1,61 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: disallow-cluster-admin-binding
+  annotations:
+    policies.kyverno.io/title: "Block cluster-admin RoleBindings"
+    policies.kyverno.io/category: RBAC & Identity
+    policies.kyverno.io/severity: high
+spec:
+  validationActions: [Deny]
+  evaluation:
+    background:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [rbac.authorization.k8s.io]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [clusterrolebindings]
+  matchConditions:
+    - name: exclude-system-bindings
+      expression: >-
+        !(['cluster-admin'].exists(n, object.metadata.name == n)) &&
+        !object.metadata.name.startsWith('system:')
+  validations:
+    - expression: "!(['cluster-admin', 'admin', 'edit'].exists(n, object.roleRef.name == n))"
+      message: >-
+        Directe binding aan de ingebouwde cluster-admin, admin of edit
+        ClusterRole is niet toegestaan. Gebruik een Role met minimale
+        benodigde rechten.
+---
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: disallow-privileged-rolebinding
+  annotations:
+    policies.kyverno.io/title: "Block privileged RoleBindings"
+    policies.kyverno.io/category: RBAC & Identity
+    policies.kyverno.io/severity: high
+spec:
+  validationActions: [Deny]
+  evaluation:
+    background:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [rbac.authorization.k8s.io]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [rolebindings]
+  matchConditions:
+    - name: exclude-system-bindings
+      expression: >-
+        !object.metadata.name.startsWith('system:')
+  validations:
+    - expression: >-
+        object.roleRef.kind != 'ClusterRole' ||
+        !(['cluster-admin', 'admin', 'edit'].exists(n, object.roleRef.name == n))
+      message: >-
+        Binding aan de ingebouwde cluster-admin, admin of edit ClusterRole is
+        niet toegestaan. Gebruik een Role met minimale benodigde rechten.

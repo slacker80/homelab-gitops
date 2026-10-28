@@ -1,0 +1,26 @@
+# Centrale lijst van platform-namespaces die zijn uitgesloten van
+# CiliumClusterwideNetworkPolicies (default-deny en allow-regels).
+#
+# Wijzig ALLEEN dit bestand om namespaces toe te voegen of te verwijderen.
+# De patch wordt automatisch toegepast op ALLE CiliumClusterwideNetworkPolicies.
+#
+# ┌────────────────────────────────────────────────────────────────┐
+# │ Namespace toevoegen:                                           │
+# │ 1. Voeg de namespace toe aan de values-lijst hieronder         │
+# │ 2. Commit + push — ArgoCD past het toe op alle policies        │
+# └────────────────────────────────────────────────────────────────┘
+- op: replace
+  path: /spec/endpointSelector
+  value:
+    matchExpressions:
+      - key: io.kubernetes.pod.namespace
+        operator: NotIn
+        values:
+          - kube-system
+          - kyverno
+          - argocd
+          - karpenter
+          - cert-manager
+          - cilium-secrets
+          # Interne platform-Gateway (Envoy Gateway + Envoy proxies).
+          - envoy-gateway-system

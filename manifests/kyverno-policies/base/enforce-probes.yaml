@@ -1,0 +1,27 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: enforce-probes
+  annotations:
+    policies.kyverno.io/title: "Enforce Health Probes"
+    policies.kyverno.io/category: Reliability & Availability
+    policies.kyverno.io/severity: medium
+spec:
+  validationActions: [Deny]
+  evaluation:
+    background:
+      enabled: true
+  autogen:
+    podControllers:
+      controllers: [daemonsets, deployments, statefulsets]
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods]
+  validations:
+    - expression: object.spec.containers.all(c, has(c.readinessProbe))
+      message: Alle containers moeten een readinessProbe hebben.
+    - expression: object.spec.containers.all(c, has(c.livenessProbe))
+      message: Alle containers moeten een livenessProbe hebben.

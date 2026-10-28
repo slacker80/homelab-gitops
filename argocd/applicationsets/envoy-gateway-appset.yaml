@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: envoy-gateway
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  platform/envoy-gateway: "true"
+          - git:
+              repoURL: https://github.com/slacker80/homelab-gitops.git
+              revision: main
+              files:
+                - path: helm-values/versions.yaml
+  template:
+    metadata:
+      name: "envoy-gateway-{{ .nameNormalized }}"
+      annotations:
+        argocd.argoproj.io/sync-wave: "2"
+      labels:
+        app.kubernetes.io/part-of: platform
+        app.kubernetes.io/name: envoy-gateway
+        app.kubernetes.io/managed-by: argocd
+    spec:
+      project: platform
+      sources:
+        - repoURL: docker.io/envoyproxy
+          chart: gateway-helm
+          targetRevision: '{{ index (index . "envoy-gateway") "default" }}'
+          helm:
+            releaseName: envoy-gateway
+            ignoreMissingValueFiles: true
+            valueFiles:
+              - $values/helm-values/envoy-gateway/values.yaml
+              - $values/helm-values/envoy-gateway/values-{{ .name }}.yaml
+        - repoURL: https://github.com/slacker80/homelab-gitops.git
+          targetRevision: main
+          ref: values
+      destination:
+        server: "{{ .server }}"
+        namespace: envoy-gateway-system
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

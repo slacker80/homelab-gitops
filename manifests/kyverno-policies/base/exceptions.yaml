@@ -1,0 +1,74 @@
+# Exceptions for the CEL ValidatingPolicies delivered by the
+# kyverno-policies PSS Helm chart.
+apiVersion: policies.kyverno.io/v1
+kind: PolicyException
+metadata:
+  name: platform-pss-exceptions
+  namespace: kyverno
+spec:
+  policyRefs:
+    - { name: disallow-host-namespaces, kind: ValidatingPolicy }
+    - { name: disallow-host-ports, kind: ValidatingPolicy }
+    - { name: require-run-as-nonroot, kind: ValidatingPolicy }
+    - { name: require-run-as-non-root-user, kind: ValidatingPolicy }
+    - { name: disallow-privilege-escalation, kind: ValidatingPolicy }
+    - { name: disallow-capabilities-strict, kind: ValidatingPolicy }
+    - { name: restrict-seccomp-strict, kind: ValidatingPolicy }
+    - { name: restrict-volume-types, kind: ValidatingPolicy }
+  matchConditions:
+    - name: platform-namespace
+      expression: >-
+        ['kube-system', 'kyverno', 'argocd', 'karpenter',
+         'ingress-test', 'cert-manager', 'envoy-gateway-system'].exists(n, object.metadata.?namespace.orValue('') == n)
+---
+apiVersion: policies.kyverno.io/v1
+kind: PolicyException
+metadata:
+  name: platform-validation-exceptions
+  namespace: kyverno
+spec:
+  policyRefs:
+    - { name: require-resource-limits, kind: ValidatingPolicy }
+    - { name: disallow-latest-tag, kind: ValidatingPolicy }
+    - { name: require-explicit-serviceaccount, kind: ValidatingPolicy }
+    - { name: enforce-probes, kind: ValidatingPolicy }
+    - { name: disallow-secrets-in-env, kind: ValidatingPolicy }
+    - { name: disallow-automount-sa-token, kind: ValidatingPolicy }
+  matchConditions:
+    - name: platform-namespace
+      expression: >-
+        ['kube-system', 'kyverno', 'argocd', 'karpenter',
+         'ingress-test', 'cert-manager', 'envoy-gateway-system'].exists(n, object.metadata.?namespace.orValue('') == n)
+---
+apiVersion: policies.kyverno.io/v1
+kind: PolicyException
+metadata:
+  name: platform-mutation-exceptions
+  namespace: kyverno
+spec:
+  policyRefs:
+    - { name: add-default-security-context, kind: MutatingPolicy }
+  matchConditions:
+    - name: platform-namespace
+      expression: >-
+        ['kube-system', 'kyverno', 'argocd', 'karpenter',
+         'ingress-test', 'cert-manager', 'envoy-gateway-system'].exists(n, object.metadata.?namespace.orValue('') == n)
+---
+apiVersion: policies.kyverno.io/v1
+kind: PolicyException
+metadata:
+  name: platform-rbac-exceptions
+  namespace: kyverno
+spec:
+  policyRefs:
+    - { name: restrict-wildcard-rbac, kind: ValidatingPolicy }
+  matchConditions:
+    - name: platform-rbac
+      expression: >-
+        (object.kind == 'ClusterRole' &&
+          (object.metadata.name.startsWith('argocd-') ||
+           object.metadata.name.startsWith('kyverno:') ||
+           object.metadata.name.startsWith('cilium'))) ||
+        (object.kind == 'Role' &&
+          ['kube-system', 'kyverno', 'argocd', 'karpenter',
+           'ingress-test', 'cert-manager', 'envoy-gateway-system'].exists(n, object.metadata.namespace == n))

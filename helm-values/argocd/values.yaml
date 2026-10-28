@@ -1,0 +1,76 @@
+crds:
+  install: true
+  keep: true
+global:
+  nodeSelector:
+    kubernetes.io/os: linux
+configs:
+  cm:
+    admin.enabled: 'true'
+    exec.enabled: 'true'
+    resource.exclusions: |
+      - apiGroups:
+          - cilium.io
+        kinds:
+          - CiliumIdentity
+        clusters:
+          - "*"
+    server.rbac.disableApplicationFineGrainedRBACInheritance: 'true'
+  rbac:
+    policy.default: ''
+  params:
+    server.insecure: 'false'
+server:
+  replicas: 2
+  serviceAccount:
+    create: true
+    name: argocd-server
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+  service:
+    type: ClusterIP
+  httproute:
+    enabled: false
+repoServer:
+  replicas: 2
+  serviceAccount:
+    create: true
+    name: argocd-repo-server
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+controller:
+  serviceAccount:
+    create: true
+    name: argocd-application-controller
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 4Gi
+applicationSet:
+  replicas: 2
+  serviceAccount:
+    create: true
+    name: argocd-applicationset-controller
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+redis:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
