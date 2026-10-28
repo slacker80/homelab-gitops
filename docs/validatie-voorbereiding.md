@@ -20,7 +20,7 @@ migratie of restore uitgevoerd. Geen uitrolvrijgave.
   validationActions Audit en de vier namespace-uitzonderingen.
 - Cilium 1.20.4: archief tegen checksum gecontroleerd; twee renders na elkaar
   zijn byte-gelijk (stabiel onder Argo).
-- Kustomize: alle `manifests/*/management`-overlays bouwen.
+- Kustomize: alle `manifests/*/talos`-overlays bouwen.
 - Gitleaks 8.30.1 (`gitleaks dir .`): geen geheimen gevonden.
 - pre-commit en Trunk: niet uitgevoerd; configuratie ontbreekt.
 

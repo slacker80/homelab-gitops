@@ -1,4 +1,4 @@
-# Centrale chartversies; alle clusters gebruiken de default tenzij expliciet overschreven.
+# Centrale chartversies; één Talos-cluster gebruikt de default tenzij expliciet overschreven.
 # Werk bij een versiewijziging ook helm-values/chart-checksums.sha256 bij.
 
 argocd:

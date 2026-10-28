@@ -12,9 +12,9 @@ Besluitbron: [homelab-specs](https://github.com/slacker80/homelab-specs),
 - `helm-values/versions.yaml`: centrale chartversies met Renovate-annotaties,
   `default` en eventueel een clusternaam als override. Checksums van de
   chartarchieven staan in `helm-values/chart-checksums.sha256`.
-- `helm-values/<component>/values.yaml` en `values-management.yaml`: basis en
+- `helm-values/<component>/values.yaml` en `values-talos.yaml`: basis en
   clusteroverrides. Ontbrekende valuesbestanden laten de render falen.
-- `manifests/<component>/management/`: extra resources via Kustomize.
+- `manifests/<component>/talos/`: extra resources via Kustomize.
 - `argocd/applicationsets/`: clusterselectie, chartbron, valuesbron en extra manifests.
 
 ## Besluiten van Peter (SMA-94, 27 oktober 2026)
@@ -37,8 +37,8 @@ Besluitbron: [homelab-specs](https://github.com/slacker80/homelab-specs),
   verwijderd. De aparte namespace-app en `manifests/namespaces/` zijn vervallen.
   `argocd` maakt de Terraform-bootstrap aan. Platformnamespaces krijgen geen
   PSA-labels en volgen de Talos-baseline.
-- **Beheer na bootstrap (SMA-150):** Terraform installeert Cilium en Argo
-  eenmalig; daarna beheert Argo beide vanuit deze repo. Zie
+- **Beheer na bootstrap (SMA-150):** Terraform installeert Cilium, Argo en cert-manager
+  eenmalig; daarna beheert Argo alle drie vanuit deze repo. Zie
   [Terraform-bootstrap](terraform-bootstrap.md).
 
 ## Lokaal voorbereid
@@ -76,7 +76,7 @@ python3 scripts/validate.py
 python3 scripts/validate.py --release   # hoort te weigeren
 scripts/render-apps.sh > /tmp/apps.yaml
 scripts/render-kyverno.sh > /tmp/kyverno.yaml
-kustomize build manifests/<component>/management
+kustomize build manifests/<component>/talos
 ```
 
 ## Beheer en herstel

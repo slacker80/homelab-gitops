@@ -5,7 +5,7 @@
 # Pod security
 
 Kyverno beheert Pod Security Standards en aanvullende policies vanuit
-`manifests/kyverno-policies/base/`. De management-overlay gebruikt deze baseline.
+`manifests/kyverno-policies/base/`. De Talos-overlay gebruikt deze baseline.
 
 Workloads moeten onder meer resource limits, probes en een expliciete
 ServiceAccount instellen. De baseline beperkt privileges en RBAC en vereist

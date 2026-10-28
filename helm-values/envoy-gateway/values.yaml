@@ -4,14 +4,14 @@ deployment:
   replicas: 3
   pod:
     topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: topology.kubernetes.io/zone
-        whenUnsatisfiable: ScheduleAnyway
-        labelSelector:
-          matchLabels:
-            control-plane: envoy-gateway
-            app.kubernetes.io/name: gateway-helm
-            app.kubernetes.io/instance: envoy-gateway
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          control-plane: envoy-gateway
+          app.kubernetes.io/name: gateway-helm
+          app.kubernetes.io/instance: envoy-gateway
   envoyGateway:
     resources:
       requests:
@@ -19,3 +19,16 @@ deployment:
         memory: 128Mi
       limits:
         memory: 512Mi
+crds:
+  enabled: true
+service:
+  type: ClusterIP
+config:
+  envoyGateway:
+    gateway:
+      controllerName: gateway.envoyproxy.io/gatewayclass-controller
+    provider:
+      type: Kubernetes
+    logging:
+      level:
+        default: info

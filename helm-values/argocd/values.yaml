@@ -6,6 +6,20 @@ global:
     kubernetes.io/os: linux
 configs:
   cm:
+    # Application-health is standaard niet ingebouwd; toon Synced én Healthy.
+    resource.customizations.health.argoproj.io_Application: |
+      hs = {status = "Progressing", message = "Wacht op sync en health"}
+      if obj.status ~= nil then
+        if obj.status.health ~= nil and obj.status.health.status == "Degraded" then
+          hs.status = "Degraded"
+          hs.message = obj.status.health.message or "Child is Degraded"
+        elseif obj.status.sync ~= nil and obj.status.sync.status == "Synced"
+          and obj.status.health ~= nil and obj.status.health.status == "Healthy" then
+          hs.status = "Healthy"
+          hs.message = "Child is Synced en Healthy"
+        end
+      end
+      return hs
     admin.enabled: 'true'
     exec.enabled: 'true'
     resource.exclusions: |
