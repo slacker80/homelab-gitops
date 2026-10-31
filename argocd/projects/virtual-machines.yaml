@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: virtual-machines
+  namespace: argocd
+spec:
+  description: Alleen de twee vaste VM-namespaces; geen extra rechten voor apps of
+    agents.
+  sourceRepos:
+  - https://github.com/slacker80/homelab-gitops.git
+  destinations:
+  - namespace: apps-homeassistant
+    server: https://kubernetes.default.svc
+  - namespace: apps-unifi-os-server
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: storage.k8s.io
+    kind: StorageClass
+  namespaceResourceWhitelist:
+  - group: kubevirt.io
+    kind: VirtualMachine
+  - group: cdi.kubevirt.io
+    kind: DataVolume
+  - group: k8s.cni.cncf.io
+    kind: NetworkAttachmentDefinition
+  - group: ''
+    kind: PersistentVolumeClaim

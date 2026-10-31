@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Lokaal renderen van de zes app-charts; benadert geen Kubernetes-cluster.
+# Lokaal renderen van de vijf app-charts; benadert geen Kubernetes-cluster.
 set -euo pipefail
 repo_root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 render_tmp=$(mktemp -d)
@@ -11,7 +11,6 @@ version() {
 }
 # app chart repo namespace
 apps=(
-  "homeassistant home-assistant https://pajikos.github.io/home-assistant-helm-chart apps-homeassistant"
   "hermes app-template https://bjw-s-labs.github.io/helm-charts apps-hermes"
   "paperclip app-template https://bjw-s-labs.github.io/helm-charts apps-paperclip"
   "claude-agent app-template https://bjw-s-labs.github.io/helm-charts agents-claude"
@@ -30,8 +29,6 @@ for entry in "${apps[@]}"; do
   read -r app chart _ namespace <<<"$entry"
   ver=$(version "$app")
   args=(-f "$repo_root/helm-values/$app/values.yaml" -f "$repo_root/helm-values/$app/values-talos.yaml")
-  # Gelijk aan skipTests in de homeassistant-ApplicationSet.
-  [[ "$app" == homeassistant ]] && args+=(--skip-tests)
   echo "---"
   echo "# app: $app ($chart $ver)"
   "$helm_bin" template "$app" "$render_tmp/$chart-$ver.tgz" \

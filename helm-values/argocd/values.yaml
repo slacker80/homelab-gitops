@@ -6,6 +6,8 @@ global:
     kubernetes.io/os: linux
 configs:
   cm:
+    # Behoud Helm release-labels/selectors bij overname door <release>-talos.
+    application.resourceTrackingMethod: annotation
     # Application-health is standaard niet ingebouwd; toon Synced én Healthy.
     resource.customizations.health.argoproj.io_Application: |
       hs = {status = "Progressing", message = "Wacht op sync en health"}

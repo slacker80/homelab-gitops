@@ -1,0 +1,33 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kyverno-control
+  namespace: kyverno
+specs:
+- endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: kyverno
+      k8s:app.kubernetes.io/part-of: kyverno
+  egress:
+  - toEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: '443'
+        protocol: TCP
+      - port: '6443'
+        protocol: TCP
+- endpointSelector:
+    matchExpressions:
+    - key: k8s:app.kubernetes.io/component
+      operator: In
+      values:
+      - admission-controller
+      - cleanup-controller
+  ingress:
+  - fromEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: '9443'
+        protocol: TCP

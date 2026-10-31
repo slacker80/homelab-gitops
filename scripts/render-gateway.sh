@@ -18,7 +18,7 @@ done
 diff -u "$render_tmp/envoy-1.yaml" "$render_tmp/envoy-2.yaml"
 "$kustomize_bin" build "$repo_root/manifests/gateway/talos" > "$render_tmp/routes.yaml"
 # Service contracts must use the same chart versions, releases and values as Argo.
-for entry in 'argocd argo-cd https://argoproj.github.io/argo-helm argocd' 'cilium cilium https://helm.cilium.io kube-system' 'homeassistant home-assistant https://pajikos.github.io/home-assistant-helm-chart apps-homeassistant' 'paperclip app-template https://bjw-s-labs.github.io/helm-charts apps-paperclip'; do
+for entry in 'argocd argo-cd https://argoproj.github.io/argo-helm argocd' 'cilium cilium https://helm.cilium.io kube-system' 'paperclip app-template https://bjw-s-labs.github.io/helm-charts apps-paperclip'; do
   read -r component chart repo namespace <<<"$entry"
   version=$(python3 -c 'import sys,yaml; print(yaml.safe_load(open(sys.argv[1]))[sys.argv[2]]["default"])' "$repo_root/helm-values/versions.yaml" "$component")
   "$helm_bin" pull "$chart" --repo "$repo" --version "$version" --destination "$render_tmp" --repository-cache "$render_tmp/cache" --repository-config "$render_tmp/repositories.yaml"
@@ -27,4 +27,4 @@ for entry in 'argocd argo-cd https://argoproj.github.io/argo-helm argocd' 'ciliu
   "$helm_bin" lint "$render_tmp/$chart-$version.tgz" "${values[@]}" --kube-version 1.36.5
   "$helm_bin" template "$component" "$render_tmp/$chart-$version.tgz" --namespace "$namespace" --kube-version 1.36.5 "${values[@]}" > "$render_tmp/$component.yaml"
 done
-python3 "$repo_root/scripts/validate-gateway.py" "$render_tmp/routes.yaml" "$render_tmp/envoy-1.yaml" "$render_tmp/argocd.yaml" "$render_tmp/cilium.yaml" "$render_tmp/homeassistant.yaml" "$render_tmp/paperclip.yaml"
+python3 "$repo_root/scripts/validate-gateway.py" "$render_tmp/routes.yaml" "$render_tmp/envoy-1.yaml" "$render_tmp/argocd.yaml" "$render_tmp/cilium.yaml" "$render_tmp/paperclip.yaml"

@@ -1,3 +1,5 @@
+> SMA-174: de Home Assistant Helm-Service, HTTPRoute en listener zijn vervallen. Alleen Argo CD, Paperclip en Hubble worden nog gerenderd. Oudere HA-routebeschrijvingen hieronder zijn historische context; voor de VM geldt [virtualisatie](virtualisatie.md). Er is geen vervangende Gateway-backend geconfigureerd.
+
 # Gateway API — SMA-156
 
 Dit is broncodevoorbereiding voor het ene toekomstige Talos-cluster op ThinkCentre.

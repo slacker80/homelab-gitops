@@ -26,7 +26,7 @@ def validate(objects, definitions, services):
     gateway, = by_kind('Gateway')
     check(gateway['metadata']['namespace'] == 'envoy-gateway-system', 'Gateway-namespace')
     listeners = {l['name']: l for l in gateway['spec']['listeners']}
-    check(set(listeners) == {'argocd', 'homeassistant', 'paperclip', 'hubble'}, 'UI-inventaris')
+    check(set(listeners) == {'argocd', 'paperclip', 'hubble'}, 'UI-inventaris')
     check(gateway['spec']['gatewayClassName'] == 'envoy-internal', 'GatewayClass')
     proxy, = by_kind('EnvoyProxy')
     check(proxy['spec']['provider']['kubernetes']['envoyService']['type'] == 'ClusterIP', 'Extern adres verboden')

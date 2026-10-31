@@ -16,15 +16,15 @@ externe clustercredentials. De labels schakelen de volgende componenten in:
 
 | Label | Component |
 | --- | --- |
-| `argocd-install=true` | Argo CD zelfbeheer (na de Terraform-bootstrap) |
-| `cilium-install=true` | Cilium zelfbeheer (na de Terraform-bootstrap) |
+| `argocd-install=true` | Argo CD zelfbeheer (na de Helm-bootstrap) |
+| `cilium-install=true` | Cilium zelfbeheer (na de Helm-bootstrap) |
 | `platform/cilium=true` | Cilium-netwerkpolicies; Cilium moet al geïnstalleerd zijn |
 | `platform/kyverno=true` | Kyverno |
 | `platform/kyverno-policies=true` | Pod Security Standards en aanvullende policies |
 | `platform/cert-manager=true` | cert-manager |
 | `platform/envoy-gateway=true` | Envoy Gateway-controller en gebundelde CRDs |
 | `platform/gateway-routes=true` | Interne Gateway API-resources, vereist ook Envoy-label |
-| `apps/<app>=true` | Home Assistant, Paperclip, Hermes, Claude-, Codex- en OpenCode-worker |
+| `apps/<app>=true` | Paperclip, Hermes, Claude-, Codex- en OpenCode-worker |
 
 ## Indeling
 
@@ -35,17 +35,18 @@ externe clustercredentials. De labels schakelen de volgende componenten in:
 - `tests/kyverno/`: bestaande regressietests voor een securityContext-variant.
 - `scripts/`: lokale validatie en renders zonder clusterverbinding.
 
-Apps gebruiken een upstream-chart waar die bestaat: de community-chart voor
-Home Assistant (pajikos), de generieke bjw-s app-template voor Hermes, Paperclip
-en de drie workers. Namespaces maakt Argo aan via `CreateNamespace=true`
-met PSA-labels in `managedNamespaceMetadata`; er is geen aparte namespace-app.
+Hermes, Paperclip en de drie workers gebruiken bjw-s app-template. Hun namespaces
+maakt Argo aan via `CreateNamespace=true` met PSA restricted. KubeVirt, CDI, HAOS
+en UniFi hebben vier expliciete namespaces in `virtualization-security`;
+zie [virtualisatiebeveiliging](docs/virtualisatie-security.md). De VM's gebruiken
+een eigen AppProject, zonder verruiming van de agentrechten.
 PVC's staan als extra manifest met `Prune=false,Delete=false`, zodat data blijft
 staan als een Application verdwijnt.
 
 ## Status
 
 Conceptvoorbereiding voor SMA-94: alle clusterlabels staan `false`. Zie
-[voorbereiding](docs/voorbereiding.md), [Terraform-bootstrap](docs/terraform-bootstrap.md)
+[voorbereiding](docs/voorbereiding.md), [Bootstrap en Argo-overname](docs/bootstrap.md)
 en [open punten](preparation-state.yaml).
 
 ## Toegang en inrichting
@@ -54,14 +55,15 @@ Argo CD gebruikt de lokale adminlogin en serveert HTTPS via een ClusterIP-servic
 Voor lokale toegang kun je `kubectl -n argocd port-forward svc/argocd-server 8443:443`
 gebruiken. Repositorycredentials en wachtwoorden worden buiten deze repo beheerd.
 
-Envoy Gateway en vier interne HTTPS-routes zijn voorbereid; zie
+Envoy Gateway en drie interne HTTPS-routes zijn voorbereid; zie
 [Gateway API](docs/gateway-api.md) voor hostnaamvoorstel, beheer, TLS,
 toegangsblokkade en herstel. ClusterIP en deny-all voorkomen publicatie.
 cert-manager heeft nog geen gekozen Issuer; alle installatielabels blijven uit.
 
-De bestaande replica-aantallen, resourcebudgetten en policies zijn behouden.
-Controleer of ze bij de capaciteit van je homelab passen. Workloadpolicies
-vereisen onder meer minimaal twee replica's en expliciete netwerktoestemming.
+Kyverno gebruikt één replica per controller op de ene node, met upstream PSS
+restricted/Audit en failurePolicy Ignore. De eigen replica-, zone- en PDB-policies
+blijven inactief. Podverkeer vraagt expliciete netwerktoestemming; VM-verkeer
+via br0 vraagt isolatie buiten Cilium.
 
 ## Aanpassen en controleren
 
@@ -79,6 +81,7 @@ bash scripts/render-platform.sh  # Argo CD, cert-manager en Cilium: checksum, li
 bash scripts/render-gateway.sh # Envoy, CRD-schema en service-/routecontracten
 scripts/render-apps.sh      # app-charts, met checksumcontrole
 scripts/render-kyverno.sh   # Kyverno-charts, met checksumcontrole
+python3 scripts/validate_security.py --render /pad/naar/kyverno-render.yaml
 ```
 
 Werk bij een chartversie ook `helm-values/chart-checksums.sha256` bij.
@@ -89,3 +92,5 @@ actieve baselinepolicy.
 
 Argo CD verzorgt de uitrol na publicatie. Lokale wijzigingen zijn geen bewijs
 dat de configuratie al op een cluster draait.
+
+HAOS en UniFi OS Server zijn als KubeVirt-gasten voorbereid. Zie [virtualisatie](docs/virtualisatie.md) voor pins, verplichte inputs, Gerrits integratiegrens en herstel. `platform/virtualization=false` houdt alle zes nieuwe ApplicationSets uit. Home Assistant als Helm-app en de oude Gateway-route zijn vervallen.

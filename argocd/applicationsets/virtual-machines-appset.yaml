@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: virtual-machines
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+  - missingkey=error
+  generators:
+  - clusters:
+      selector:
+        matchLabels:
+          platform/virtualization: 'true'
+  template:
+    metadata:
+      name: virtual-machines-{{ .nameNormalized }}
+      annotations:
+        argocd.argoproj.io/sync-wave: '6'
+    spec:
+      project: virtual-machines
+      source:
+        repoURL: https://github.com/slacker80/homelab-gitops.git
+        targetRevision: main
+        path: manifests/virtual-machines/{{ .name }}
+      destination:
+        server: '{{ .server }}'
+        namespace: apps-homeassistant
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+        syncOptions:
+        - ServerSideApply=true
+  syncPolicy:
+    preserveResourcesOnDeletion: true

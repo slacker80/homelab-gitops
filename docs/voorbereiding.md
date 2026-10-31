@@ -1,5 +1,11 @@
 # Voorbereiding SMA-94 — concept, geen uitrolvrijgave
 
+Actueel voor het single-node-besluit van 31 oktober: [virtualisatie](virtualisatie.md)
+en [beveiliging](virtualisatie-security.md). De oorspronkelijke besluiten en tabel
+hieronder zijn historie waar ze Proxmox, de HA-chart, twee Kyverno-replica's of
+namespacebeheer voor de VM's noemen. Actief: één Kyverno-replica per controller,
+upstream PSS Audit/Ignore; geen eigen Kyverno-policies. Alle labels blijven uit.
+
 Basis: Peters [PR 1](https://github.com/slacker80/homelab-gitops/pull/1),
 commit `acda1db69a6bae01e3f561205c90c83ee16e4959`.
 Besluitbron: [homelab-specs](https://github.com/slacker80/homelab-specs),

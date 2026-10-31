@@ -6,7 +6,7 @@ import sys
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-APPS = ["homeassistant", "hermes", "paperclip", "claude-agent", "codex-agent", "opencode-agent"]
+APPS = ["hermes", "paperclip", "claude-agent", "codex-agent", "opencode-agent"]
 def load(path):
     return yaml.safe_load((ROOT / path).read_text())
 def check(condition, message):
@@ -72,6 +72,10 @@ def main():
         chart = next(s for s in spec["sources"] if "chart" in s)
         check(chart["helm"]["releaseName"] == component, f"Bootstrap-release wijkt af: {component}")
         check("ServerSideApply=true" in spec["syncPolicy"]["syncOptions"], f"Geen SSA: {component}")
+    check(load("helm-values/cilium/values.yaml")["bpf"]["hostLegacyRouting"] is True, "Talos Host-DNS vereist legacy host routing")
+    check(load("helm-values/argocd/values.yaml")["configs"]["cm"]["application.resourceTrackingMethod"] == "annotation", "Helm-releaselabels moeten behouden blijven")
+    for component in ("cilium", "argocd"):
+        check(load(f"argocd/applicationsets/{component}-appset.yaml")["spec"]["template"]["spec"]["syncPolicy"]["automated"]["enabled"] is False, "Eerste Argo-overname vereist handmatige diff/sync")
     check(load("helm-values/cert-manager/values.yaml")["crds"]["keep"], "cert-manager CRDs onbeschermd")
     check(load("helm-values/cilium/values.yaml")["hubble"]["tls"]["auto"]["method"] == "cronJob", "Hubble-render is willekeurig")
     check(load("helm-values/cilium/values.yaml")["gatewayAPI"]["enabled"] is False,
@@ -114,9 +118,6 @@ def main():
             todo.append(name)
         if not all("@sha256:" in str(tag) for tag in image_tags(yaml.safe_load(values_text))):
             undigested.append(name)
-    ha = load("argocd/applicationsets/homeassistant-appset.yaml")["spec"]["template"]["spec"]
-    check(next(x for x in ha["sources"] if "chart" in x)["helm"].get("skipTests") is True,
-          "Home Assistant-testpod moet via skipTests uit")
     check(not (ROOT / "charts").exists(), "Eigen charts/ hoort niet meer te bestaan")
     check(not (ROOT / "manifests/namespaces").exists(), "Namespaces horen via de ApplicationSets te lopen")
     root = load("argocd/bootstrap/root-app.yaml")
@@ -129,7 +130,7 @@ def main():
     check(policies["podSecurityStandard"] == "restricted" and policies["policyType"] == "ValidatingPolicy",
           "Verkeerd upstream policyprofiel")
     engine = load("helm-values/kyverno/values.yaml")
-    check(engine["admissionController"]["replicas"] == 2, "Twee admission-replica's vereist")
+    check(engine["admissionController"]["replicas"] == 1, "Eén admission-replica vereist op één node")
     check(engine["features"]["forceFailurePolicyIgnore"]["enabled"], "Ignore niet afgedwongen")
     custom = load("manifests/kyverno-policies/base/kustomization.yaml")
     check(custom["resources"] == [], "Eigen Kyverno-policies mogen niet actief zijn")
@@ -146,6 +147,8 @@ def main():
     if args.release:
         check(state["ready"] and not state["blockers"] and not todo and not undigested,
               "Uitrol geblokkeerd: zie preparation-state.yaml")
+    from validate_virtualization import validate as validate_virtualization
+    validate_virtualization(release=args.release)
     return 0
 
 if __name__ == "__main__":

@@ -1,0 +1,34 @@
+# Verwachtingen tegen de werkelijke upstream-chart; geen eigen actieve policies.
+restrictedResources:
+- apps-homeassistant/restricted-launcher
+- apps-unifi-os-server/restricted-importer
+- kubevirt/kubevirt-operator-fixture
+- cdi/cdi-operator-fixture
+handlerResource: kubevirt/privileged-handler
+handlerExemptPolicies:
+- disallow-privileged-containers
+- disallow-host-namespaces
+- disallow-host-path
+- disallow-privilege-escalation
+- require-run-as-nonroot
+- require-run-as-non-root-user
+- restrict-seccomp-strict
+- disallow-capabilities-strict
+- restrict-volume-types
+negativeCases:
+- policy: disallow-privileged-containers
+  resources:
+  - kubevirt/wrong-sa
+  - kubevirt/wrong-owner
+  - agents-codex/spoofed-worker
+  - apps-paperclip/privileged-app
+  - apps-homeassistant/privileged-vm
+- policy: restrict-seccomp-strict
+  resources:
+  - apps-homeassistant/missing-seccomp
+- policy: disallow-capabilities-strict
+  resources:
+  - apps-homeassistant/extra-capability
+- policy: disallow-capabilities
+  resources:
+  - apps-homeassistant/extra-capability

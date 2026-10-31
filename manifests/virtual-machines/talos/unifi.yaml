@@ -1,0 +1,41 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: unifi
+  namespace: apps-unifi-os-server
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  runStrategy: Always
+  template:
+    metadata:
+      labels:
+        app: unifi
+    spec:
+      evictionStrategy: None
+      terminationGracePeriodSeconds: 120
+      domain:
+        cpu:
+          cores: 2
+        resources:
+          requests:
+            memory: 4Gi
+        devices:
+          disks:
+          - name: rootdisk
+            disk:
+              bus: virtio
+            bootOrder: 1
+          interfaces:
+          - name: lan
+            bridge: {}
+            model: virtio
+            macAddress: REQUIRED_UNIFI_MAC
+      networks:
+      - name: lan
+        multus:
+          networkName: lan-br0
+      volumes:
+      - name: rootdisk
+        dataVolume:
+          name: unifi-disk

@@ -25,5 +25,15 @@ for entry in "${components[@]}"; do
  done
  # Weiger willekeurige certificaten/wachtwoorden die blijvende drift geven.
  diff -u "$render_tmp/$component-1.yaml" "$render_tmp/$component-2.yaml" >&2
+ if [[ "$component" == cilium ]]; then
+   python3 - "$render_tmp/$component-1.yaml" <<'CHECK'
+import sys,yaml
+objects=list(yaml.safe_load_all(open(sys.argv[1])));
+cm=next(x for x in objects if x and x.get('kind')=='ConfigMap' and x['metadata']['name']=='cilium-config')['data']
+assert str(cm['enable-host-legacy-routing']).lower() == 'true'
+assert str(cm['cni-exclusive']).lower() == 'false'
+print('Cilium render: Host-DNS compatibel en Multus behouden.', file=sys.stderr)
+CHECK
+ fi
  cat "$render_tmp/$component-1.yaml"
 done

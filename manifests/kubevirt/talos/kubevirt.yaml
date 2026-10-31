@@ -1,0 +1,29 @@
+apiVersion: kubevirt.io/v1
+kind: KubeVirt
+metadata:
+  name: kubevirt
+  namespace: kubevirt
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  infra:
+    replicas: 1
+  configuration:
+    evictionStrategy: None
+    virtTemplateDeployment:
+      enabled: false
+    permittedHostDevices:
+      usb:
+      - resourceName: kubevirt.io/ha-usb
+        selectors:
+        - vendor: REQUIRED_USB_VENDOR
+          product: REQUIRED_USB_PRODUCT
+    developerConfiguration:
+      featureGates:
+      - HostDevices
+    seccompConfiguration:
+      virtualMachineInstanceProfile:
+        customProfile:
+          runtimeDefaultProfile: true
+  workloadUpdateStrategy:
+    workloadUpdateMethods: []

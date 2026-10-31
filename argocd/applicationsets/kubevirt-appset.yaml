@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: kubevirt
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+  - missingkey=error
+  generators:
+  - clusters:
+      selector:
+        matchLabels:
+          platform/virtualization: 'true'
+  template:
+    metadata:
+      name: kubevirt-{{ .nameNormalized }}
+      annotations:
+        argocd.argoproj.io/sync-wave: '5'
+    spec:
+      project: platform
+      source:
+        repoURL: https://github.com/slacker80/homelab-gitops.git
+        targetRevision: main
+        path: manifests/kubevirt/{{ .name }}
+      destination:
+        server: '{{ .server }}'
+        namespace: kubevirt
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+        syncOptions:
+        - ServerSideApply=true
+  syncPolicy:
+    preserveResourcesOnDeletion: true

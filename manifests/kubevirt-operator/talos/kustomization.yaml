@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../vendor
+patches:
+- target:
+    kind: Deployment
+    name: virt-operator
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: Namespace
+    name: kubevirt
+  patch: "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: kubevirt\n$patch: delete\n"

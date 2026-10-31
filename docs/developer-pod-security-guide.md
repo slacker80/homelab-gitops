@@ -1,17 +1,13 @@
-> Deze oorspronkelijke PR-1-handleiding is nog niet bijgewerkt. Voor de huidige
-> voorbereiding geldt [voorbereiding.md](voorbereiding.md); oude eigen Kyverno-regels
-> zijn niet actief.
-
 # Pod security
 
-Kyverno beheert Pod Security Standards en aanvullende policies vanuit
-`manifests/kyverno-policies/base/`. De Talos-overlay gebruikt deze baseline.
+Actueel: [virtualisatiebeveiliging](virtualisatie-security.md). Upstream Kyverno
+PSS is restricted/Audit/Ignore. Alleen virt-handler heeft negen gerichte
+PSS-uitzonderingen; CDI, virt-launchers en andere apps/agents krijgen die niet.
+PSA enforce is privileged in kubevirt en restricted in CDI en de VM-namespaces.
+De KubeVirt-CR configureert RuntimeDefault-seccomp voor virt-launchers.
 
-Workloads moeten onder meer resource limits, probes en een expliciete
-ServiceAccount instellen. De baseline beperkt privileges en RBAC en vereist
-minimaal twee replica's voor Deployments en StatefulSets, of een bijbehorende
-HPA met minimaal twee replica's. Controleer deze eisen voor je homelabcapaciteit.
-
-Kyverno genereert een PodDisruptionBudget voor geschikte workloads. Wie zelf
-een PDB beheert, kan de workloadannotatie `homelab.local/skip-pdb: "true"`
-gebruiken. Platformuitzonderingen staan in `base/exceptions.yaml`.
+Kyverno gebruikt één replica per controller op de ene node. De oude eigen
+policies voor minimumreplica's, zone-spreiding, probes, ServiceAccounts en
+PDB-generatie zijn niet actief: hun Kustomization is leeg. Activeer deze niet
+zonder een nieuw besluit en compatibiliteitscontrole. Een policytest of render
+bewijst geen werkende admission, VM-start of veilige shutdown.

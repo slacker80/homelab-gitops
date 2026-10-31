@@ -1,7 +1,5 @@
-# Cilium zelf. Terraform (homelab-infra) installeert Cilium eenmalig met dezelfde
-# chartversie en values; daarna neemt deze ApplicationSet het beheer over
-# (besluit SMA-150). Zet het label pas aan wanneer Terraform de release uit zijn
-# state heeft gehaald; twee beheerders tegelijk is niet toegestaan.
+# Cilium eenmalig via gepinde Helm-bootstrap; Argo neemt daarna over.
+# Eerst bootstrapscripts blokkeren en release/render-diff reviewen; zie docs/bootstrap.md.
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -39,7 +37,7 @@ spec:
           chart: cilium
           targetRevision: '{{ coalesce (index .cilium .name) (index .cilium "default") }}'
           helm:
-            # Gelijk aan de Terraform-release, zodat Argo dezelfde objecten overneemt.
+            # Gelijk aan de eenmalige Helm-release, zodat Argo dezelfde objecten overneemt.
             releaseName: cilium
             ignoreMissingValueFiles: false
             valueFiles:
@@ -53,6 +51,8 @@ spec:
         namespace: kube-system
       syncPolicy:
         automated:
+          # Eerste overname: diff en handmatige sync vóór gereviewde activering.
+          enabled: false
           # Geen prune voor de CNI: een verkeerde render mag geen netwerk weghalen.
           prune: false
           selfHeal: true
