@@ -25,25 +25,6 @@ spec:
       kinds:
       - group: gateway.networking.k8s.io
         kind: HTTPRoute
-  - name: homeassistant
-    hostname: homeassistant.admin.home.arpa
-    port: 443
-    protocol: HTTPS
-    tls:
-      mode: Terminate
-      certificateRefs:
-      - group: ''
-        kind: Secret
-        name: homeassistant-admin-tls
-    allowedRoutes:
-      namespaces:
-        from: Selector
-        selector:
-          matchLabels:
-            kubernetes.io/metadata.name: apps-homeassistant
-      kinds:
-      - group: gateway.networking.k8s.io
-        kind: HTTPRoute
   - name: paperclip
     hostname: paperclip.admin.home.arpa
     port: 443

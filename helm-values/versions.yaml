@@ -25,11 +25,6 @@ cilium:
   # renovate: datasource=helm depName=cilium registryUrl=https://helm.cilium.io
   default: "1.20.4"
 
-# Community-chart (pajikos); geen officiële Home Assistant-chart.
-homeassistant:
-  # renovate: datasource=helm depName=home-assistant registryUrl=https://pajikos.github.io/home-assistant-helm-chart
-  default: "0.3.89"
-
 # Generieke bjw-s app-template voor apps zonder bruikbare upstream-chart.
 hermes:
   # renovate: datasource=helm depName=app-template registryUrl=https://bjw-s-labs.github.io/helm-charts

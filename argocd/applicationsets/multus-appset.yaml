@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: multus
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+  - missingkey=error
+  generators:
+  - clusters:
+      selector:
+        matchLabels:
+          platform/virtualization: 'true'
+  template:
+    metadata:
+      name: multus-{{ .nameNormalized }}
+      annotations:
+        argocd.argoproj.io/sync-wave: '4'
+    spec:
+      project: platform
+      source:
+        repoURL: https://github.com/slacker80/homelab-gitops.git
+        targetRevision: main
+        path: manifests/multus/{{ .name }}
+      destination:
+        server: '{{ .server }}'
+        namespace: kube-system
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+        syncOptions:
+        - ServerSideApply=true
+  syncPolicy:
+    preserveResourcesOnDeletion: true

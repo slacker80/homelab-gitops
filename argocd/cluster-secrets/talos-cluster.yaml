@@ -1,5 +1,3 @@
-# Alleen clusterregistratie: geen tokens of certificaten.
-# talos is de logische Argo-naam, geen hostnaam.
 apiVersion: v1
 kind: Secret
 metadata:
@@ -8,23 +6,24 @@ metadata:
   labels:
     argocd.argoproj.io/secret-type: cluster
     appset: managed
-    argocd-install: "false"
-    cilium-install: "false"
-    platform/cilium: "false"
-    platform/kyverno: "false"
-    platform/kyverno-policies: "false"
-    platform/cert-manager: "false"
-    platform/envoy-gateway: "false"
-    platform/gateway-routes: "false"
-    apps/homeassistant: "false"
-    apps/paperclip: "false"
-    apps/hermes: "false"
-    apps/claude-agent: "false"
-    apps/codex-agent: "false"
-    apps/opencode-agent: "false"
+    argocd-install: 'false'
+    cilium-install: 'false'
+    platform/cilium: 'false'
+    platform/kyverno: 'false'
+    platform/kyverno-policies: 'false'
+    platform/cert-manager: 'false'
+    platform/envoy-gateway: 'false'
+    platform/gateway-routes: 'false'
+    apps/paperclip: 'false'
+    apps/hermes: 'false'
+    apps/claude-agent: 'false'
+    apps/codex-agent: 'false'
+    apps/opencode-agent: 'false'
+    platform/virtualization: 'false'
 type: Opaque
 stringData:
   name: talos
   server: https://kubernetes.default.svc
-  config: |
-    {}
+  config: '{}
+
+    '

@@ -1,0 +1,19 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: unifi-disk
+  namespace: apps-unifi
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  source:
+    http:
+      url: REQUIRED_UNIFI_IMAGE_URL
+  pvc:
+    accessModes:
+    - ReadWriteOnce
+    volumeMode: Filesystem
+    storageClassName: vm-disks-retain
+    resources:
+      requests:
+        storage: 20Gi

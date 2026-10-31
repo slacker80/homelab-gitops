@@ -1,0 +1,15 @@
+kubevirt-operator:
+  version: v1.9.1
+  url: https://github.com/kubevirt/kubevirt/releases/download/v1.9.1/kubevirt-operator.yaml
+  sha256: 9ac45a436c49d32e6fc21d542bcb7600b970705297b9e6752f3ef9b0a1d292da
+cdi-operator:
+  version: v1.66.1
+  url: https://github.com/kubevirt/containerized-data-importer/releases/download/v1.66.1/cdi-operator.yaml
+  sha256: c7d92bd1b2ee1a3952a5990000437c08d58109f31c0bd48ab6188ec27a13e224
+multus:
+  version: v4.2.3
+  url: https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/v4.2.3/deployments/multus-daemonset-thick.yml
+  sha256: 3deea054dc2dca607c2c859e5f31a8fb82389f68c13b5f8be054607151391290
+  image: ghcr.io/k8snetworkplumbingwg/multus-cni:v4.2.3-thick@sha256:e93af9e533cc16ca7847aeec3b516c9b1e8891c2b95c727991e94c9b59c4970e
+  imageVerification: GHCR OCI index digest retrieved for tag v4.2.3-thick on 2026-10-31;
+    upstream tag manifest itself used snapshot-thick, overridden by Kustomize.

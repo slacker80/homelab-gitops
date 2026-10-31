@@ -34,3 +34,7 @@ gatewayAPI:
   enabled: false
 ingressController:
   enabled: false
+
+# Multus gebruikt dezelfde CNI-configmap op de node.
+cni:
+  exclusive: false
