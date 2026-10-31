@@ -16,8 +16,8 @@ externe clustercredentials. De labels schakelen de volgende componenten in:
 
 | Label | Component |
 | --- | --- |
-| `argocd-install=true` | Argo CD zelfbeheer (na de Terraform-bootstrap) |
-| `cilium-install=true` | Cilium zelfbeheer (na de Terraform-bootstrap) |
+| `argocd-install=true` | Argo CD zelfbeheer (na de Helm-bootstrap) |
+| `cilium-install=true` | Cilium zelfbeheer (na de Helm-bootstrap) |
 | `platform/cilium=true` | Cilium-netwerkpolicies; Cilium moet al geïnstalleerd zijn |
 | `platform/kyverno=true` | Kyverno |
 | `platform/kyverno-policies=true` | Pod Security Standards en aanvullende policies |
@@ -44,7 +44,7 @@ staan als een Application verdwijnt.
 ## Status
 
 Conceptvoorbereiding voor SMA-94: alle clusterlabels staan `false`. Zie
-[voorbereiding](docs/voorbereiding.md), [Terraform-bootstrap](docs/terraform-bootstrap.md)
+[voorbereiding](docs/voorbereiding.md), [Bootstrap en Argo-overname](docs/bootstrap.md)
 en [open punten](preparation-state.yaml).
 
 ## Toegang en inrichting

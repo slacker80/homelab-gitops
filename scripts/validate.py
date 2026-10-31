@@ -72,6 +72,10 @@ def main():
         chart = next(s for s in spec["sources"] if "chart" in s)
         check(chart["helm"]["releaseName"] == component, f"Bootstrap-release wijkt af: {component}")
         check("ServerSideApply=true" in spec["syncPolicy"]["syncOptions"], f"Geen SSA: {component}")
+    check(load("helm-values/cilium/values.yaml")["bpf"]["hostLegacyRouting"] is True, "Talos Host-DNS vereist legacy host routing")
+    check(load("helm-values/argocd/values.yaml")["configs"]["cm"]["application.resourceTrackingMethod"] == "annotation", "Helm-releaselabels moeten behouden blijven")
+    for component in ("cilium", "argocd"):
+        check(load(f"argocd/applicationsets/{component}-appset.yaml")["spec"]["template"]["spec"]["syncPolicy"]["automated"]["enabled"] is False, "Eerste Argo-overname vereist handmatige diff/sync")
     check(load("helm-values/cert-manager/values.yaml")["crds"]["keep"], "cert-manager CRDs onbeschermd")
     check(load("helm-values/cilium/values.yaml")["hubble"]["tls"]["auto"]["method"] == "cronJob", "Hubble-render is willekeurig")
     check(load("helm-values/cilium/values.yaml")["gatewayAPI"]["enabled"] is False,
