@@ -5,6 +5,10 @@ global:
   nodeSelector:
     kubernetes.io/os: linux
 configs:
+  ssh:
+    # GitHub officiële hostkey; gedeeld met bootstrap/github_known_hosts.
+    knownHosts: |
+      github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
   cm:
     # Behoud Helm release-labels/selectors bij overname door <release>-talos.
     application.resourceTrackingMethod: annotation

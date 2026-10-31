@@ -135,3 +135,28 @@ Bronnen: [Cilium op Talos](https://docs.cilium.io/en/stable/installation/k8s-ins
 [Argo Helm releaseName](https://argo-cd.readthedocs.io/en/stable/user-guide/helm/#helm-release-name),
 [Argo tracking](https://argo-cd.readthedocs.io/en/stable/user-guide/resource_tracking/),
 [Talos startprocedure](https://docs.siderolabs.com/talos/v1.14/getting-started/getting-started).
+
+## SSH-repository en bootstrap vanaf Mac (SMA-183)
+
+Alle homelab-gitops Git-bronnen gebruiken `git@github.com:slacker80/homelab-gitops.git`;
+chart-URLs blijven behouden. `sourceRepos` is een allowlist, geen credentialbinding.
+De bootstrap in homelab-infra injecteert ná Argo en vóór root afzonderlijk
+`argocd/homelab-gitops-repository` (repository-label, type=git, url, sshPrivateKey),
+zonder projectveld. `talos-cluster` blijft clusterregistratie.
+
+`bootstrap/github_known_hosts` en `configs.ssh.knownHosts` bevatten dezelfde
+GitHub Ed25519-hostkey uit officiële GitHub Docs (gecontroleerd 31-10-2026).
+Geen ssh-keyscan of uitgeschakelde hostkeycontrole. De beheerder levert een apart
+0600 read-only deploykeybestand buiten Git/state/USB aan. Geen vault verondersteld.
+
+Verplichte volgorde: argocd → repo-secret → repo-fetch → root → handover. Fetch
+controleert de echte main-commit met SSH en een tijdelijke Argo-Application zonder
+sync; root blijft bij fout geblokkeerd en wordt op de exacte gereviewde commit
+vastgezet. De platform-AppProject wordt voor de probe aangemaakt. Herhaalde
+secretinjectie gebruikt base64-data en server-side apply (geen stringData-eigendomsprobleem);
+lokale mocks toetsen identieke inhoud, live idempotentie nog te bewijzen. App-Secrets via aparte private file-interface
+met expliciete kubeconfig/context zodra namespaces bestaan, zonder app-healthwait.
+
+Zie `homelab-infra/docs/talos-installatie.md` voor kopieerbare stappen, stopgrenzen,
+terugval en beperkingen. Dit is codevoorbereiding; geen live fetch/rotatie/restore
+bewezen. Installatielabels false en overname-lock blijven verplicht.

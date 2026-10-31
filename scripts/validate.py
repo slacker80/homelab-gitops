@@ -147,6 +147,8 @@ def main():
     if args.release:
         check(state["ready"] and not state["blockers"] and not todo and not undigested,
               "Uitrol geblokkeerd: zie preparation-state.yaml")
+    from validate_repository import validate as validate_repository
+    validate_repository()
     from validate_virtualization import validate as validate_virtualization
     validate_virtualization(release=args.release)
     return 0

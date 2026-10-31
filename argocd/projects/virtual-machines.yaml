@@ -7,7 +7,7 @@ spec:
   description: Alleen de twee vaste VM-namespaces; geen extra rechten voor apps of
     agents.
   sourceRepos:
-  - https://github.com/slacker80/homelab-gitops.git
+  - git@github.com:slacker80/homelab-gitops.git
   destinations:
   - namespace: apps-homeassistant
     server: https://kubernetes.default.svc
