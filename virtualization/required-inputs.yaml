@@ -1,0 +1,20 @@
+ready: false
+haos:
+  mac: REQUIRED_HAOS_MAC
+  imageURL: REQUIRED_HAOS_IMAGE_URL
+  sha256: REQUIRED_HAOS_SHA256
+unifi:
+  mac: REQUIRED_UNIFI_MAC
+  imageURL: REQUIRED_UNIFI_IMAGE_URL
+  sha256: REQUIRED_UNIFI_SHA256
+  hostInstallerVersion: REQUIRED_UNIFI_OS_SERVER_VERSION
+  hostInstallerURL: REQUIRED_UNIFI_OS_SERVER_URL
+  hostInstallerSha256: REQUIRED_UNIFI_OS_SERVER_SHA256
+usb:
+  vendor: REQUIRED_USB_VENDOR
+  product: REQUIRED_USB_PRODUCT
+  identityAndCount: REQUIRED_USB_INVENTORY
+storage:
+  provisionerAndBackupVerified: false
+  talosUserVolumeAndCapacity: REQUIRED_STORAGE_LAYOUT
+securityIntegrationReviewed: false

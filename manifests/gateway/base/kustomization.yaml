@@ -4,7 +4,6 @@ resources:
 - proxy.yaml
 - class.yaml
 - argocd-route.yaml
-- homeassistant-route.yaml
 - paperclip-route.yaml
 - hubble-route.yaml
 - gateway.yaml

@@ -24,7 +24,7 @@ externe clustercredentials. De labels schakelen de volgende componenten in:
 | `platform/cert-manager=true` | cert-manager |
 | `platform/envoy-gateway=true` | Envoy Gateway-controller en gebundelde CRDs |
 | `platform/gateway-routes=true` | Interne Gateway API-resources, vereist ook Envoy-label |
-| `apps/<app>=true` | Home Assistant, Paperclip, Hermes, Claude-, Codex- en OpenCode-worker |
+| `apps/<app>=true` | Paperclip, Hermes, Claude-, Codex- en OpenCode-worker |
 
 ## Indeling
 
@@ -35,8 +35,7 @@ externe clustercredentials. De labels schakelen de volgende componenten in:
 - `tests/kyverno/`: bestaande regressietests voor een securityContext-variant.
 - `scripts/`: lokale validatie en renders zonder clusterverbinding.
 
-Apps gebruiken een upstream-chart waar die bestaat: de community-chart voor
-Home Assistant (pajikos), de generieke bjw-s app-template voor Hermes, Paperclip
+Apps gebruiken een upstream-chart waar die bestaat: de generieke bjw-s app-template voor Hermes, Paperclip
 en de drie workers. Namespaces maakt Argo aan via `CreateNamespace=true`
 met PSA-labels in `managedNamespaceMetadata`; er is geen aparte namespace-app.
 PVC's staan als extra manifest met `Prune=false,Delete=false`, zodat data blijft
@@ -54,7 +53,7 @@ Argo CD gebruikt de lokale adminlogin en serveert HTTPS via een ClusterIP-servic
 Voor lokale toegang kun je `kubectl -n argocd port-forward svc/argocd-server 8443:443`
 gebruiken. Repositorycredentials en wachtwoorden worden buiten deze repo beheerd.
 
-Envoy Gateway en vier interne HTTPS-routes zijn voorbereid; zie
+Envoy Gateway en drie interne HTTPS-routes zijn voorbereid; zie
 [Gateway API](docs/gateway-api.md) voor hostnaamvoorstel, beheer, TLS,
 toegangsblokkade en herstel. ClusterIP en deny-all voorkomen publicatie.
 cert-manager heeft nog geen gekozen Issuer; alle installatielabels blijven uit.
@@ -89,3 +88,5 @@ actieve baselinepolicy.
 
 Argo CD verzorgt de uitrol na publicatie. Lokale wijzigingen zijn geen bewijs
 dat de configuratie al op een cluster draait.
+
+HAOS en UniFi OS Server zijn als KubeVirt-gasten voorbereid. Zie [virtualisatie](docs/virtualisatie.md) voor pins, verplichte inputs, Gerrits integratiegrens en herstel. `platform/virtualization=false` houdt alle zes nieuwe ApplicationSets uit. Home Assistant als Helm-app en de oude Gateway-route zijn vervallen.

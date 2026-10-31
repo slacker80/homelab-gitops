@@ -1,20 +1,44 @@
 ready: false
 blockers:
-  - Overdracht na Terraform-bootstrap (SMA-150) in homelab-infra afronden; daarna pas argocd-install/cilium-install/platform/cert-manager aanzetten.
-  - Root, repositorytoegang en AppProject platform bij bootstrap; root valt buiten zijn eigen child-set.
-  - Pin alle images op tag@digest (validate.py --release weigert anders); vul worker-images, commando's, UID/GID, probes en secretnamen in; vervang alle TODO-waarden.
-  - Hermes (app-template, SMA-153) - image gelijk aan de Pi-build, lokaal aangemaakte secretnaam en migratie van config.yaml naar /opt/data bevestigen; UID 10000 tegen de gepinde build controleren.
-  - Home Assistant als 568:568 onder PSA restricted is best effort (upstream-image start als root) en niet getest; mDNS/SSDP zonder hostNetwork werkt niet.
-  - Pod-start onder PSA restricted niet getest; alleen statische render-check. Controle op wegwerpcluster met kubectl apply --dry-run=server.
-  - Bij elke chartbump de gerenderde diff reviewen: geen van de twee chartrepo's levert provenance/signing (SMA-152).
-  - Paperclip-datadir, poort/health, PostgreSQL-versie en consistente dump/files/keys-restore bevestigen.
-  - Pin local-path-provisioner 0.0.37 met namespace local-path-storage (PSA privileged via managedNamespaceMetadata) en Talos UserVolumes met Retain.
-  - Complete componentgerichte CNPs vóór inschakelen CCNP; echte poorten en bestemmingen controleren.
-  - Application-health is geconfigureerd; controller/CRD/webhook-readiness en tweede sync nog live bewijzen; waves alleen zijn onvoldoende.
-  - Dispatcher/bridge met maximaal één actieve taak en gezamenlijk 2Gi codingbudget aantoonbaar afdwingen.
-  - Lokaal secrets-script en versleutelde externe herstelset voorbereiden; script maakt zo nodig de namespace zonder labels aan.
-  - Afzonderlijke live autorisatie, directe API-route, functionele tests en herstelproef op SMA-102.
-
-  - "SMA-156: bevestig admin.home.arpa-hostnamen, interne toegangsroute, CIDRs/auth en DNS; ClusterIP en admin-deny-all blijven tot besluit staan."
-  - "SMA-156: lever vier TLS-Secrets in envoy-gateway-system via gekozen cert-manager Issuer/externe PKI en argocd-server-ca ConfigMap in argocd; niets hiervan staat in Git."
-  - "SMA-156: bewijs CRD/controller-readiness vóór gateway-routes, policy Accepted, TLS en backendverificatie, Cilium-netwerktoestemming en positieve/negatieve toegangsproeven."
+- Overdracht na Terraform-bootstrap (SMA-150) in homelab-infra afronden; daarna pas
+  argocd-install/cilium-install/platform/cert-manager aanzetten.
+- Root, repositorytoegang en AppProject platform bij bootstrap; root valt buiten zijn
+  eigen child-set.
+- Pin alle images op tag@digest (validate.py --release weigert anders); vul worker-images,
+  commando's, UID/GID, probes en secretnamen in; vervang alle TODO-waarden.
+- Hermes (app-template, SMA-153) - image gelijk aan de Pi-build, lokaal aangemaakte
+  secretnaam en migratie van config.yaml naar /opt/data bevestigen; UID 10000 tegen
+  de gepinde build controleren.
+- Pod-start onder PSA restricted niet getest; alleen statische render-check. Controle
+  op wegwerpcluster met kubectl apply --dry-run=server.
+- Bij elke chartbump de gerenderde diff reviewen: geen van de twee chartrepo's levert
+    provenance/signing (SMA-152).
+- Paperclip-datadir, poort/health, PostgreSQL-versie en consistente dump/files/keys-restore
+  bevestigen.
+- Pin local-path-provisioner 0.0.37 met namespace local-path-storage (PSA privileged
+  via managedNamespaceMetadata) en Talos UserVolumes met Retain.
+- "Complete componentgerichte CNPs v\xF3\xF3r inschakelen CCNP; echte poorten en bestemmingen\
+  \ controleren."
+- Application-health is geconfigureerd; controller/CRD/webhook-readiness en tweede
+  sync nog live bewijzen; waves alleen zijn onvoldoende.
+- "Dispatcher/bridge met maximaal \xE9\xE9n actieve taak en gezamenlijk 2Gi codingbudget\
+  \ aantoonbaar afdwingen."
+- Lokaal secrets-script en versleutelde externe herstelset voorbereiden; script maakt
+  zo nodig de namespace zonder labels aan.
+- Afzonderlijke live autorisatie, directe API-route, functionele tests en herstelproef
+  op SMA-102.
+- 'SMA-156: bevestig admin.home.arpa-hostnamen, interne toegangsroute, CIDRs/auth
+  en DNS; ClusterIP en admin-deny-all blijven tot besluit staan.'
+- 'SMA-156: lever drie TLS-Secrets in envoy-gateway-system via gekozen cert-manager
+  Issuer/externe PKI en argocd-server-ca ConfigMap in argocd; niets hiervan staat
+  in Git.'
+- "SMA-156: bewijs CRD/controller-readiness v\xF3\xF3r gateway-routes, policy Accepted,\
+  \ TLS en backendverificatie, Cilium-netwerktoestemming en positieve/negatieve toegangsproeven."
+- "SMA-174: Vul virtualization/required-inputs.yaml en manifesten in; --release moet\
+  \ slagen v\xF3\xF3r inschakelen."
+- 'SMA-174: Gerrits security-integratie (namespaces, PSA, AppProjects, Kyverno, CNPs)
+  reviewen.'
+- 'SMA-174: HA Gateway-route/listener vervallen; directe LAN-toegang via .233, geen
+  proxy zonder bewezen backend.'
+- 'SMA-174: Retain-provisioner, Talos UserVolume, capaciteit en externe VM/app-back-ups
+  nog niet bewezen.'

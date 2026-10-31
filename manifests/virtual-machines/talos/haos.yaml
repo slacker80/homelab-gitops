@@ -1,0 +1,48 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: haos
+  namespace: apps-homeassistant
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  runStrategy: Always
+  template:
+    metadata:
+      labels:
+        app: haos
+    spec:
+      evictionStrategy: None
+      terminationGracePeriodSeconds: 120
+      domain:
+        cpu:
+          cores: 2
+        resources:
+          requests:
+            memory: 3Gi
+        devices:
+          disks:
+          - name: rootdisk
+            disk:
+              bus: virtio
+            bootOrder: 1
+          interfaces:
+          - name: lan
+            bridge: {}
+            model: virtio
+            macAddress: REQUIRED_HAOS_MAC
+          hostDevices:
+          - name: ha-usb
+            deviceName: kubevirt.io/ha-usb
+        firmware:
+          bootloader:
+            efi:
+              secureBoot: false
+      networks:
+      - name: lan
+        multus:
+          networkName: lan-br0
+      volumes:
+      - name: rootdisk
+        dataVolume:
+          name: haos-disk
