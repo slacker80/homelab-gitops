@@ -9,7 +9,10 @@ crds:
 
 # Admission controller configuration
 admissionController:
-  replicas: 2
+  # Eén Talos-node: één replica per controller, geen schijn-HA of chart-PDB.
+  # Downtime bij herstart is geaccepteerd; Audit/Ignore blijft behouden.
+  # Nodeonderhoud stopt gasten expliciet en gebruikt geen generieke drain.
+  replicas: 1
 
 
   # Pod security context - run as non-root user
@@ -64,7 +67,7 @@ admissionController:
 # Background controller configuration
 backgroundController:
   enabled: true
-  replicas: 2
+  replicas: 1
 
   # Extra RBAC voor generate policies:
   # background-controller moet ServiceAccounts, PDBs en NetworkPolicies
@@ -193,7 +196,7 @@ cleanupController:
 # Reports controller configuration
 reportsController:
   enabled: true
-  replicas: 2
+  replicas: 1
 
   # Pod security context - run as non-root user
   podSecurityContext:
@@ -342,20 +345,9 @@ serviceAccounts:
     create: true
     automountServiceAccountToken: true
 
-# Pod disruption budgets for high availability
-podDisruptionBudget:
-  admissionController:
-    enabled: true
-    minAvailable: 1
-  backgroundController:
-    enabled: true
-    minAvailable: 1
-  cleanupController:
-    enabled: true
-    minAvailable: 1
-  reportsController:
-    enabled: true
-    minAvailable: 1
+# Geen PodDisruptionBudgets: één node, 1 replica per controller (zie
+# admissionController.replicas). De chart leest PDB-opties alleen onder
+# <controller>.podDisruptionBudget; het eerdere top-level blok had geen effect.
 
 # Limit policy updates to reduce attack surface
 # Only update policies when necessary

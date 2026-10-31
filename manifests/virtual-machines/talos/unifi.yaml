@@ -2,7 +2,7 @@ apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
   name: unifi
-  namespace: apps-unifi
+  namespace: apps-unifi-os-server
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 spec:

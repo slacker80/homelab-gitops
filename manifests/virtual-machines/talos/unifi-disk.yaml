@@ -2,7 +2,7 @@ apiVersion: cdi.kubevirt.io/v1beta1
 kind: DataVolume
 metadata:
   name: unifi-disk
-  namespace: apps-unifi
+  namespace: apps-unifi-os-server
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 spec:

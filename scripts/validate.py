@@ -130,7 +130,7 @@ def main():
     check(policies["podSecurityStandard"] == "restricted" and policies["policyType"] == "ValidatingPolicy",
           "Verkeerd upstream policyprofiel")
     engine = load("helm-values/kyverno/values.yaml")
-    check(engine["admissionController"]["replicas"] == 2, "Twee admission-replica's vereist")
+    check(engine["admissionController"]["replicas"] == 1, "Eén admission-replica vereist op één node")
     check(engine["features"]["forceFailurePolicyIgnore"]["enabled"], "Ignore niet afgedwongen")
     custom = load("manifests/kyverno-policies/base/kustomization.yaml")
     check(custom["resources"] == [], "Eigen Kyverno-policies mogen niet actief zijn")

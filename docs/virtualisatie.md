@@ -12,7 +12,7 @@ geen toepasbare configuratie. Riekus integreert pas na review van beide branches
 | CDI v1.66.1 | Diskimport, namespace cdi | DataVolume-status via API | Herstel operator en gepinde CR; bestaande disks behouden, geen herimport over data |
 | Multus v4.2.3 thick | Extra VM-netwerk, kube-system, bridge br0 van Talos | DaemonSet en NAD via API | Vooraf bekende Cilium/Multus-config; eerst directe API/console-route zekerstellen |
 | HAOS | UEFI zonder Secure Boot, 2 vCPU/3Gi/32Gi, apps-homeassistant | LAN 192.168.1.233:8123; DHCP-reservering op bevestigde vaste MAC | Retain-disk herkoppelen of externe diskkopie terugzetten; daarna HA-backup en USB-inventaris herstellen |
-| UniFi OS Server | Linux-gast, 2 vCPU/4Gi/20Gi, apps-unifi | LAN 192.168.1.235; gastconsole via virtctl; HTTPS-poort bij installatie bevestigen | Bestaande gastdisk of externe kopie herstellen; gepinde OS Server-hostinstaller en UniFi-export gebruiken |
+| UniFi OS Server | Linux-gast, 2 vCPU/4Gi/20Gi, apps-unifi-os-server | LAN 192.168.1.235; gastconsole via virtctl; HTTPS-poort bij installatie bevestigen | Bestaande gastdisk of externe kopie herstellen; gepinde OS Server-hostinstaller en UniFi-export gebruiken |
 | vm-disks-retain | Local-path StorageClass op dezelfde SSD; RWO/Filesystem, Retain/WFFC | PVC/PV via API | Bestaande PV en data-inhoud identificeren en onder review herkoppelen; Retain is geen back-up |
 
 Dit zijn doeltoestanden, geen aangetoonde bereikbaarheid of herstelproeven.
@@ -44,12 +44,15 @@ CDI verifieert in dit ontwerp de opgegeven SHA256 niet zelf. Vóór een echte im
 moet de operator de download lokaal tegen die SHA256 controleren en dezelfde bytes
 op een onveranderlijke HTTPS-bron aanbieden. Zonder dat bewijs geen import.
 
-## Integratiegrens voor Gerrit
+## Security-integratie
 
-Deze branch verandert geen Kyverno, policies, CNPs, PSA of AppProject-security.
-De Applications zijn daarom bewust nog niet activeerbaar. Gerrit levert op zijn
-branch de namespaces en gerichte toestemmingen vóór `platform/virtualization=true`.
-Geen `CreateNamespace=true`: namespaces moeten expliciet gereed zijn. De upstream Namespace-objecten zijn uit de render gefilterd, zodat deze Applications Gerrits namespacebeheer niet overnemen.
+De securitylaag staat in [virtualisatie-security.md](virtualisatie-security.md):
+vier expliciete namespaces, gerichte CNP's, upstream PSS-uitzondering voor
+virt-handler en een apart VM-AppProject. Alle labels en vrijgavevlaggen blijven
+uit. Geen `CreateNamespace=true` voor virtualisatie: de security-Application
+beheert de namespaces. Upstream Namespace-objecten blijven uit de operatorrender
+gefilterd. De naam `apps-unifi-os-server` volgt de specs; het eerdere `apps-unifi`
+is in de drie VM/DV/NAD-referenties gecorrigeerd.
 
 | Namespace/gebied | Benodigde resources en review |
 | --- | --- |
@@ -57,19 +60,20 @@ Geen `CreateNamespace=true`: namespaces moeten expliciet gereed zijn. De upstrea
 | cdi | CDI-operator en gegenereerde API/controller/uploadproxy/RBAC/webhooks; CDI-CR is clusterbreed. Import- en scratchpods moeten mogen draaien. |
 | kube-system | Multus thick DaemonSet, initcontainer, ConfigMap/ServiceAccount/RBAC; privileged, hostPID/hostNetwork en hostPaths naar CNI/run/kubelet. Cilium cni.exclusive=false in beide repos. |
 | apps-homeassistant | VM haos, DV/PVC haos-disk, NAD lan-br0, virt-launcher, importer/scratchpods; USB resource kubevirt.io/ha-usb. |
-| apps-unifi | VM unifi, DV/PVC unifi-disk, NAD lan-br0, virt-launcher, importer/scratchpods. |
-| clusterbreed | KubeVirt/CDI/VM/NAD-CRDs, ClusterRoles/Bindings, webhooks/APIServices, PriorityClass en StorageClass vm-disks-retain. AppProject platform/workloads moeten de juiste bronnen, bestemmingen en kinds toestaan. |
+| apps-unifi-os-server | VM unifi, DV/PVC unifi-disk, NAD lan-br0, virt-launcher, importer/scratchpods. |
+| clusterbreed | KubeVirt/CDI/VM/NAD-CRDs, ClusterRoles/Bindings, webhooks/APIServices, PriorityClass en StorageClass vm-disks-retain. AppProject platform/virtual-machines moeten de juiste bronnen, bestemmingen en kinds toestaan. |
 
-De lijst omvat ook wat de operators dynamisch aanmaken; alleen de declaratieve
-CR toestaan is onvoldoende. Gerrit bepaalt uitzonderingen op replica's,
-securityContext, serviceaccounts, probes, images en hosttoegang. Controleer ook
-namespace-selectors en netwerktoestemming voor operator/API/webhooks/importers.
+Argo-AppProjects begrenzen wat Argo toepast; de dynamische operatorobjecten
+gebruiken het upstream Kubernetes-RBAC. De eigen replica-, probe-, image- en
+ServiceAccount-policies blijven inactief; er zijn geen nieuwe eigen policies.
+De KubeVirt-CR zet RuntimeDefault-seccomp voor virt-launcher. Controleer bij
+uitvoering ook de werkelijk aangemaakte pods, labels, privileges en policies.
 Verkeer op de VM-NIC via br0 valt buiten Cilium/CNP/Hubble: LAN-isolatie hoort
 bij router/VLAN/firewall, waarvan keuzes en toegestane toegang nog ontbreken.
 
 ## Volgorde en verificatie
 
-1. Talos br0, storage/UserVolume en Cilium voorbereiden; Gerrits namespaces/security integreren. Alle inputs verifiëren; `python3 scripts/validate_virtualization.py --release` moet slagen. Deze controle verleent geen toestemming voor uitvoering.
+1. Talos br0, storage/UserVolume en Cilium voorbereiden; namespaces/security verifiëren. Alle inputs verifiëren; `python3 scripts/validate_virtualization.py --release` moet slagen. Deze controle verleent geen toestemming voor uitvoering.
 2. Operatoren/Multus (wave 4), daarna KubeVirt/CDI-CR (wave 5), dan opslag/NADs/VMs (wave 6). App-wave is geen bewijs van CRD/webhook-readiness: bij uitvoering per fase wachten en foutsignalen beoordelen vóór volgende activering.
 3. Bewijs exact één infra/operatorreplica, geen virt-template, werkende CDI-import, virt-launcher/USB-toewijzing, gast-LAN-adressen, HA-integraties en UniFi-apparaten Online. Controleer geen ongewenste migratie of tweede netwerkinterface in de gast.
 4. Gastgrace is 120s; Talos' prioriteitsgroepen reserveren 150s voor prioriteit 0 en daarna 30s/30s. Shutdown, reboot, opslagherstel, USB en herstart met Always zijn nog niet live bewezen.

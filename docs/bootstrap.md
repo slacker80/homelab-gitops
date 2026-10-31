@@ -48,15 +48,26 @@ Envoy/Gateway komen uitsluitend later via Argo; Cilium Gateway API blijft uit.
    svc/argocd-server 8443:443`. Repositorytoegang met read-only credentials buiten
    Git. Bij HTTPS de passende repocredentials; bij SSH geverifieerde hostkey.
    Wacht op repo-servertoegang en noteer de exacte gereviewde main-revisie.
-5. Infra root-fase maakt alleen project platform en root aan. Root leest
-   main/argocd recursief met bootstrap uitgesloten. Laat alle labels false;
-   verifieer root Synced/Healthy én juiste revisie vóór overname.
-6. Vergelijk `helm get metadata`, `helm get values --all` en `helm get manifest`
-   van beide bestaande releases met dezelfde gepinde lokale renders en de
-   verwachte Argo-bronnen. Bewaar deze mogelijk gevoelige output alleen in de
-   externe privéherstelset. Identiteiten/versies/namespaces/selectors moeten
-   gelijk zijn; alleen verklaarde tracking-/beheerannotaties zijn toegestaan.
-   Controleer ook live CRDs/API-compatibiliteit. Onverklaarde diff: stoppen.
+5. Vóór root-creatie: vergelijk `helm get metadata`, `helm get values --all`
+   en `helm get manifest` van beide bestaande releases met dezelfde gepinde
+   lokale renders en de verwachte Argo-bronnen op de gereviewde main-revisie.
+   Bewaar deze mogelijk gevoelige output alleen in de externe privéherstelset.
+   Identiteiten/versies/namespaces/selectors moeten gelijk zijn; alleen verklaarde
+   tracking-/beheerannotaties zijn toegestaan. Controleer ook live CRDs/API-
+   compatibiliteit. Onverklaarde diff: stoppen, root nog niet aanmaken.
+   Inspecteer alle Applications en ApplicationSets in die revisie én live:
+   alleen de bedoelde cilium- en argocd-ApplicationSets mogen deze releases
+   selecteren. Andere matches of bestaande children: stoppen en eigenaarschap
+   eerst onderzoeken. Controleer alle live cluster-Secrets voor dit API-endpoint;
+   geen registratie mag cilium-install/argocd-install=true hebben.
+6. Infra root-fase maakt alleen project platform en root aan. Root leest
+   main/argocd recursief met bootstrap uitgesloten. Controleer vóór creatie dat
+   de gereviewde Git-registratie alle labels false bevat; bevries die revisie
+   tijdens deze overdrachtsstap. Verifieer daarna root Synced/Healthy en exact
+   die revisie, alle live installatielabels false en afwezigheid van
+   cilium-talos/argocd-talos Applications. Elke afwijking: stoppen vóór handover
+   of labelactivatie. De eerder bewaarde diff blijft een vereiste; een gewijzigde
+   revisie, release of values vraagt opnieuw render/diff en review.
 7. Infra handover-fase schrijft ARGO-OWNS-lock vóór labelactivatie. Vanaf dan
    geen Helm/Terraform-install/upgrade/rollback naast Argo. Helm-release-Secrets
    blijven staan; verwijder of uninstall de releases niet. Scripts controleren

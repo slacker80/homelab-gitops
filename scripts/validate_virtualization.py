@@ -6,15 +6,17 @@ import hashlib
 import jsonschema
 import re
 import yaml
+from validate_security import validate_repository
 
 ROOT = Path(__file__).resolve().parents[1]
-COMPONENTS = ['kubevirt-operator', 'kubevirt', 'cdi-operator', 'cdi', 'multus', 'virtual-machines']
+COMPONENTS = ['virtualization-security', 'kubevirt-operator', 'kubevirt', 'cdi-operator', 'cdi', 'multus', 'virtual-machines']
 def load(path):
     return yaml.safe_load((ROOT / path).read_text())
 def require(ok, message):
     if not ok:
         raise ValueError(message)
 def validate(release=False):
+    validate_repository(release=release)
     lock = load('virtualization/versions.yaml')
     for component in ['kubevirt-operator', 'cdi-operator', 'multus']:
         raw = ROOT / f'manifests/{component}/vendor/upstream.yaml'

@@ -1,0 +1,16 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cdi-import-unifi
+  namespace: apps-unifi-os-server
+specs:
+- endpointSelector:
+    matchLabels:
+      k8s:cdi.kubevirt.io: importer
+  egress:
+  - toFQDNs:
+    - matchName: required-image-source.invalid
+    toPorts:
+    - ports:
+      - port: '443'
+        protocol: TCP

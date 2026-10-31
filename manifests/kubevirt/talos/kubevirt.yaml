@@ -21,5 +21,9 @@ spec:
     developerConfiguration:
       featureGates:
       - HostDevices
+    seccompConfiguration:
+      virtualMachineInstanceProfile:
+        customProfile:
+          runtimeDefaultProfile: true
   workloadUpdateStrategy:
     workloadUpdateMethods: []

@@ -18,7 +18,7 @@ spec:
       annotations:
         argocd.argoproj.io/sync-wave: '6'
     spec:
-      project: workloads
+      project: virtual-machines
       source:
         repoURL: https://github.com/slacker80/homelab-gitops.git
         targetRevision: main

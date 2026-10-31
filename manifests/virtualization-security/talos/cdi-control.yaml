@@ -1,0 +1,37 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cdi-control
+  namespace: cdi
+specs:
+- endpointSelector:
+    matchExpressions:
+    - key: k8s:cdi.kubevirt.io
+      operator: In
+      values:
+      - cdi-operator
+      - cdi-apiserver
+      - cdi-deployment
+      - cdi-uploadproxy
+  egress:
+  - toEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: '443'
+        protocol: TCP
+      - port: '6443'
+        protocol: TCP
+- endpointSelector:
+    matchExpressions:
+    - key: k8s:cdi.kubevirt.io
+      operator: In
+      values:
+      - cdi-apiserver
+  ingress:
+  - fromEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: '8443'
+        protocol: TCP

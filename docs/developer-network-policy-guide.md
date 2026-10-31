@@ -1,18 +1,12 @@
-> Deze oorspronkelijke PR-1-handleiding is nog niet bijgewerkt. Voor de huidige
-> voorbereiding geldt [voorbereiding.md](voorbereiding.md); oude eigen Kyverno-regels
-> zijn niet actief.
-
 # Netwerkpolicies
 
-De Cilium-baseline blokkeert ingress en egress voor workloadnamespaces en staat
-DNS naar kube-dns toe. Cilium moet vooraf op het cluster zijn geïnstalleerd.
-Platformnamespaces staan in
-`manifests/cilium/base/platform-namespace-exclusions.yaml`.
+Actueel: [virtualisatiebeveiliging](virtualisatie-security.md) en
+[voorbereiding](voorbereiding.md). De clusterbaseline bestaat uit één CCNP met
+pod-default-deny buiten kube-system en DNS naar kube-dns. De nieuwe
+virtualization-security-Application voegt gerichte controller-/API-/webhook-
+en import-CNP's toe. De eigen Kyverno NetworkPolicy-generator is inactief.
 
-Workloads moeten hun benodigde verbindingen expliciet toestaan met eigen
-NetworkPolicies of CiliumNetworkPolicies. Leg poorten, bestemmingen en
-ingressbronnen vast bij de workload. Er zijn geen vooraf ingestelde private
-netwerkranges of load-balancerbronnen.
-
-Kyverno maakt daarnaast een standaard deny-NetworkPolicy voor nieuwe
-workloadnamespaces. Controleer beide policylagen wanneer verkeer niet werkt.
+Workloads vragen expliciete poorten en peers. CNP's en Kubernetes NetworkPolicies
+werken additief; controleer daarom alle effectieve regels. Een VM-NIC op Multus
+br0 valt buiten Cilium/Hubble. Router/VLAN-isolatie, blootstelling op hetzelfde L2
+en het resterende gastverkeer moeten apart worden beoordeeld en geverifieerd.

@@ -1,0 +1,75 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kubevirt-control
+  namespace: kubevirt
+specs:
+- endpointSelector:
+    matchExpressions:
+    - key: k8s:kubevirt.io
+      operator: In
+      values:
+      - virt-operator
+      - virt-api
+      - virt-controller
+      - virt-handler
+      - virt-exportproxy
+  egress:
+  - toEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: '443'
+        protocol: TCP
+      - port: '6443'
+        protocol: TCP
+- endpointSelector:
+    matchExpressions:
+    - key: k8s:kubevirt.io
+      operator: In
+      values:
+      - virt-api
+  ingress:
+  - fromEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: '8443'
+        protocol: TCP
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: kubevirt
+        k8s:kubevirt.io: virt-handler
+    toPorts:
+    - ports:
+      - port: '8186'
+        protocol: TCP
+- endpointSelector:
+    matchExpressions:
+    - key: k8s:kubevirt.io
+      operator: In
+      values:
+      - virt-operator
+  ingress:
+  - fromEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: '8444'
+        protocol: TCP
+- endpointSelector:
+    matchExpressions:
+    - key: k8s:kubevirt.io
+      operator: In
+      values:
+      - virt-handler
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: kubevirt
+        k8s:kubevirt.io: virt-api
+    toPorts:
+    - ports:
+      - port: '8186'
+        protocol: TCP

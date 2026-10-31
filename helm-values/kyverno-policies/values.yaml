@@ -1,7 +1,7 @@
 # Base values for kyverno-policies (Pod Security Standards)
 # https://kyverno.io/policies/pod-security/
 
-# Render the PSS rules as policies.kyverno.io/v1 ValidatingPolicy resources.
+# Render the PSS rules as upstream policies.kyverno.io ValidatingPolicy resources.
 # ClusterPolicy is deprecated in Kyverno 1.17 and planned for removal.
 policyType: ValidatingPolicy
 
@@ -29,3 +29,40 @@ vpolExclude:
     - kyverno
     - argocd
     - local-path-storage
+
+# KubeVirt (SMA-175): alleen de virt-handler-DaemonSet (namespace kubevirt,
+# label kubevirt.io=virt-handler) is privileged, draait als root met hostPID en
+# hostPath-volumes (KubeVirt v1.9.1, components/daemonsets.go). Virt-api,
+# virt-controller, virt-operator, CDI en virt-launcher in de VM-namespaces
+# krijgen GEEN uitzondering; virt-launcher vereist de expliciete seccompconfig
+# in de KubeVirt-CR. Runtimecompatibiliteit is nog niet bewezen.
+# Een per-policy-entry vervangt vpolExclude volledig; de vier namespaces uit
+# vpolExclude staan daarom ook hier. Alleen de overtreden policies zijn
+# opgenomen, zodat de overige restricted-policies ook voor virt-handler gelden.
+# De matchCondition controleert namespace, label, ServiceAccount en DS-owner.
+vpolExcludeByPolicy:
+  disallow-privileged-containers: &virtHandlerExclude
+    excludeNamespaces: &baseExcludeNamespaces
+      - kube-system
+      - kyverno
+      - argocd
+      - local-path-storage
+    matchConditions:
+      - name: exclude-kubevirt-virt-handler
+        expression: >-
+          !(request.namespace == 'kubevirt' &&
+            has(object.metadata.labels) &&
+            'kubevirt.io' in object.metadata.labels &&
+            object.metadata.labels['kubevirt.io'] == 'virt-handler' &&
+            object.spec.?serviceAccountName.orValue('default') == 'kubevirt-handler' &&
+            object.metadata.?ownerReferences.orValue([]).exists(o,
+              o.apiVersion == 'apps/v1' && o.kind == 'DaemonSet' &&
+              o.name == 'virt-handler' && o.?controller.orValue(false)))
+  disallow-host-namespaces: *virtHandlerExclude
+  disallow-host-path: *virtHandlerExclude
+  disallow-privilege-escalation: *virtHandlerExclude
+  require-run-as-nonroot: *virtHandlerExclude
+  require-run-as-non-root-user: *virtHandlerExclude
+  restrict-seccomp-strict: *virtHandlerExclude
+  disallow-capabilities-strict: *virtHandlerExclude
+  restrict-volume-types: *virtHandlerExclude
