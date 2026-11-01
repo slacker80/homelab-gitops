@@ -15,7 +15,7 @@ spec:
                 matchLabels:
                   platform/cert-manager: "true"
           - git:
-              repoURL: https://github.com/slacker80/homelab-gitops.git
+              repoURL: git@github.com:slacker80/homelab-gitops.git
               revision: main
               files:
                 - path: helm-values/versions.yaml
@@ -40,7 +40,7 @@ spec:
             valueFiles:
               - $values/helm-values/cert-manager/values.yaml
               - $values/helm-values/cert-manager/values-{{ .name }}.yaml
-        - repoURL: https://github.com/slacker80/homelab-gitops.git
+        - repoURL: git@github.com:slacker80/homelab-gitops.git
           targetRevision: main
           ref: values
       destination:

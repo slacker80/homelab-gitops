@@ -17,7 +17,7 @@ spec:
                 matchLabels:
                   apps/hermes: 'true'
           - git:
-              repoURL: https://github.com/slacker80/homelab-gitops.git
+              repoURL: git@github.com:slacker80/homelab-gitops.git
               revision: main
               files:
                 - path: helm-values/versions.yaml
@@ -37,11 +37,11 @@ spec:
               - $values/helm-values/hermes/values.yaml
               - $values/helm-values/hermes/values-{{ .name }}.yaml
             ignoreMissingValueFiles: false
-        - repoURL: https://github.com/slacker80/homelab-gitops.git
+        - repoURL: git@github.com:slacker80/homelab-gitops.git
           targetRevision: main
           ref: values
         # Extra manifests, waaronder de PVC('s) met Prune=false,Delete=false.
-        - repoURL: https://github.com/slacker80/homelab-gitops.git
+        - repoURL: git@github.com:slacker80/homelab-gitops.git
           targetRevision: main
           path: manifests/hermes/{{ .name }}
       destination:

@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 spec:
   sourceRepos:
-    - https://github.com/slacker80/homelab-gitops.git
+    - git@github.com:slacker80/homelab-gitops.git
     - https://bjw-s-labs.github.io/helm-charts
   destinations:
     - namespace: apps-paperclip

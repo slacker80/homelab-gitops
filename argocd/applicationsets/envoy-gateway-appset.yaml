@@ -15,7 +15,7 @@ spec:
                 matchLabels:
                   platform/envoy-gateway: "true"
           - git:
-              repoURL: https://github.com/slacker80/homelab-gitops.git
+              repoURL: git@github.com:slacker80/homelab-gitops.git
               revision: main
               files:
                 - path: helm-values/versions.yaml
@@ -41,7 +41,7 @@ spec:
             valueFiles:
               - $values/helm-values/envoy-gateway/values.yaml
               - $values/helm-values/envoy-gateway/values-{{ .name }}.yaml
-        - repoURL: https://github.com/slacker80/homelab-gitops.git
+        - repoURL: git@github.com:slacker80/homelab-gitops.git
           targetRevision: main
           ref: values
       destination:
