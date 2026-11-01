@@ -20,7 +20,7 @@ spec:
     spec:
       project: platform
       source:
-        repoURL: https://github.com/slacker80/homelab-gitops.git
+        repoURL: git@github.com:slacker80/homelab-gitops.git
         targetRevision: main
         path: manifests/cdi/{{ .name }}
       destination:
